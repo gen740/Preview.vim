@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Reload Express Sample App</title>
+    <style></style>
+    <style type="text/css"></style>
+  </head>
+  <body>
+    <div id="content">
+      <h1>Preview.vim</h1>
+    </div>
+    <script language="javascript" type="text/javascript">
+      let ws = new WebSocket("ws://localhost:8080");
+      ws.onopen = (event) => {
+        console.log("Connected");
+      };
+
+      ws.onmessage = (event) => {
+        let data = JSON.parse(event.data);
+        switch (data.type) {
+          case "show":
+            document.getElementById("content").innerHTML = data.msg;
+            break;
+          default:
+        }
+      };
+    </script>
+  </body>
+</html>
