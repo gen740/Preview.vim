@@ -8,9 +8,6 @@ function Send_cur_buf() abort
   call denops#request('preview', 'echo', cur_buf_content)
 endfunction
 
-
-command TEST call Send_cur_buf()
-
 function PreviewStart() abort
   augroup PreviewNvim
     autocmd TextChangedI,TextChangedP,TextChanged *.md call Send_cur_buf()
