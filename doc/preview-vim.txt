@@ -1,0 +1,107 @@
+*preview-vim.txt*	Preview Plugin
+
+Version: 1.8.1
+Author: kanno <akapanna@gmail.com>
+Maintainer: preview-vim developers
+
+==============================================================================
+CONTENTS						*preview-vim-contents*
+
+Introduction						|preview-vim-introduction|
+Dependencies						|preview-vim-depends|
+Usage							|preview-vim-usage|
+Commands						|preview-vim-command|
+Functions						|preview-vim-functions|
+Settings						|preview-vim-settings|
+Using with open-browser.vim				|preview-vim-openbrowser|
+Changelog						|preview-vim-changelog|
+
+
+==============================================================================
+INDRODUCTION					*preview-vim-introduction*
+
+This plugin provides
+
+[Available formats]
+	- Markdown
+	- textile
+	- reStructuredText(required rst2html.py)
+
+Latest revision:
+http://github.com/preview-vim/preview-vim
+
+
+==============================================================================
+DEPENDENCIES					*preview-depends*
+
+[Required]
+	- npm
+	- denops
+
+[Optional]
+	- nvim-notify(https://github.com/rcarriga/nvim-notify)
+
+
+==============================================================================
+USAGE						*preview-vim-usage*
+
+
+==============================================================================
+COMMANDS					*preview-vim-command*
+
+						*:PreviewStart*
+:PreviewStart
+	Start Preview
+
+						*:PreviewStart*
+:PreviewSync
+	Sync Preview
+
+						*:PreviewStop*
+:PreviewStop
+
+						*:PreviewStop*
+:PreviewOpen
+	Open Preview Window in the browser, to use this command
+	you sheld set |g:preview_open_cmd|
+
+
+==============================================================================
+FUNCTIONS					*preview-vim-functions*
+
+preview#theme({theme_name})
+	change preview theme : "default" or "default_dark"
+
+
+
+==============================================================================
+SETTINGS					*preview-vim-settings*
+
+						*g:preview_theme*
+g:preview_theme
+	type:String
+
+	Specify the theme. "default" or "default dark"
+
+	:Default: "default"
+
+g:previw_math
+	type:Stirng
+
+	specify the math rederer. "none" or "katex"
+
+	:Default: "katex"
+
+g:preview_auto_start
+	0 or 1
+
+	Start the Preview on start.
+
+g:preview_open_cmd
+	
+	forexample "let g:preview_open_cmd = 'open -a Safari'"
+
+==============================================================================
+CHANGELOG					*preview-vim-changelog*
+
+vim:tw=78:ts=8:sw=8:ft=help:norl:noexpandtab

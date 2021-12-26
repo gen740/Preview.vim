@@ -1,8 +1,4 @@
-let ws = new WebSocket("ws://localhost:8080");
+import ky from "https://cdn.skypack.dev/ky?dts";
 
-let markdown = { type: "markdown", msg: ["# TEST", " this is test"] };
-
-
-// ws.onmessage = (event) => {
-//   console.log(event.data);
-// };
+let test: any = await ky.get("http://localhost:3000/ready").json();
+console.log(test.satate);
