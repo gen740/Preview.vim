@@ -37,17 +37,21 @@ const setting_file = path.join(__dirname, "./setting.json");
 let preview_opts = {
     cursor_sync_enable: true,
     filetype: "markdown",
-    theme: "default_dark",
+    theme: "default",
     custom_css_dir: false,
     math: 'katex',
     port: 3000,
     ws_port: 8080,
 };
+// Load Setting file
 if (fs.existsSync(setting_file)) {
     preview_opts = JSON.parse(fs.readFileSync(setting_file).toString());
 }
 else {
     fs.writeFileSync(setting_file, JSON.stringify(preview_opts));
+}
+async function save_options(opts) {
+    fs.writeFileSync(setting_file, JSON.stringify(opts));
 }
 function apply_style($2) {
     if (preview_opts.math === 'katex') {
@@ -123,74 +127,78 @@ function markdown_parser(data) {
     result_data = result_data.replace(/\u0fe1/g, `'></span>`);
     return result_data;
 }
-let wss = new ws_1.WebSocketServer({ port: preview_opts.ws_port });
-wss.on("connection", function connection(ws) {
-    ws.on("message", (data) => {
-        let res = JSON.parse(data);
-        switch (res.type) {
-            case "cur_pos":
-                wss.clients.forEach((client) => {
-                    if (client.readyState === ws_1.default.OPEN) {
-                        console.log(res.msg);
-                        client.send(JSON.stringify({ type: "cur_pos", msg: res.msg }));
-                    }
-                    ;
-                });
-                break;
-            case "markdown":
-                wss.clients.forEach((client) => {
-                    if (client.readyState === ws_1.default.OPEN) {
-                        let res_msg = markdown_parser(res.msg);
-                        client.send(JSON.stringify({ type: "show", msg: res_msg }));
-                    }
-                    ;
-                });
-                break;
-            case "options":
-                if (preview_opts.theme !== res.msg.theme) {
-                    theme_has_changed = true;
-                }
-                preview_opts = (0, clone_1.default)(res.msg);
-                wss.clients.forEach((client) => {
-                    if (client.readyState === ws_1.default.OPEN) {
-                        if (theme_has_changed) {
-                            client.send(JSON.stringify({ type: "theme_has_changed" }));
-                            theme_has_changed = false;
-                        }
-                    }
-                    ;
-                });
-                break;
-            case "notification":
-                if (res.msg === "browser_is_ready") {
+async function main() {
+    let wss = new ws_1.WebSocketServer({ port: preview_opts.ws_port })
+        .on('error', (err) => {
+        console.log("WebSocket Does not been created");
+    });
+    wss.on("connection", function connection(ws) {
+        ws.on("message", (data) => {
+            let res = JSON.parse(data);
+            switch (res.type) {
+                case "cur_pos":
                     wss.clients.forEach((client) => {
                         if (client.readyState === ws_1.default.OPEN) {
-                            client.send(JSON.stringify({ type: "notification", msg: "browser_is_ready" }));
+                            client.send(JSON.stringify({ type: "cur_pos", msg: res.msg }));
                         }
                         ;
                     });
-                }
-                break;
-            case "reset_settings":
-                fs.unlink(setting_file, (_err) => { });
-                break;
-            default:
-        }
+                    break;
+                case "markdown":
+                    wss.clients.forEach((client) => {
+                        if (client.readyState === ws_1.default.OPEN) {
+                            let res_msg = markdown_parser(res.msg);
+                            client.send(JSON.stringify({ type: "show", msg: res_msg }));
+                        }
+                        ;
+                    });
+                    break;
+                case "options":
+                    preview_opts = (0, clone_1.default)(res.msg);
+                    save_options(res.msg);
+                    wss.clients.forEach((client) => {
+                        if (client.readyState === ws_1.default.OPEN) {
+                            if (theme_has_changed) {
+                                client.send(JSON.stringify({ type: "theme_has_changed" }));
+                            }
+                        }
+                        ;
+                    });
+                    break;
+                case "notification":
+                    if (res.msg === "browser_is_ready") {
+                        wss.clients.forEach((client) => {
+                            if (client.readyState === ws_1.default.OPEN) {
+                                client.send(JSON.stringify({ type: "notification", msg: "browser_is_ready" }));
+                            }
+                            ;
+                        });
+                    }
+                    break;
+                case "reset_settings":
+                    fs.unlink(setting_file, (_err) => { });
+                    break;
+                default:
+            }
+        });
     });
-});
-app.use(express_1.default.static(publicDir));
-app.get("/previewer", (_req, res) => {
-    apply_style($);
-    res.send($.html());
-    wss.clients.forEach((client) => {
-        if (client.readyState === ws_1.default.OPEN) {
-            client.send(JSON.stringify({ type: "notification", msg: { is_browser_opened: true } }));
-        }
-        ;
+    app.use(express_1.default.static(publicDir));
+    app.get("/previewer", (_req, res) => {
+        apply_style($);
+        res.send($.html());
+        wss.clients.forEach((client) => {
+            if (client.readyState === ws_1.default.OPEN) {
+                client.send(JSON.stringify({ type: "notification", msg: { is_browser_opened: true } }));
+            }
+            ;
+        });
     });
-});
-app.get("/ready", (_req, res) => {
-    res.send(JSON.stringify({ state: "ready" }));
-});
-app.listen(preview_opts.port);
+    app.get("/ready", (_req, res) => {
+        res.send(JSON.stringify({ state: "ready" }));
+    });
+    app.listen(preview_opts.port).on('error', (err) => {
+        console.log("cannot create HTTP server");
+    });
+}
+main();
 //# sourceMappingURL=index.js.map
