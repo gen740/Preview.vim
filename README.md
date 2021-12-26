@@ -1,12 +1,19 @@
-# PreVeiw.nvim
+# Preview.vim
 
 Preview Markdown Plugin For Vim/Neovim
 
+This Project is WORK IN PROGRESS.
+There might be some big change on future commit ...
+
+
 ## Feature
 
-- live preview ( fast realtime sync, you don't have to type ":w" to update preview )
-- custom theme ( you can use typora theme, or any other custom theme you like )
-- light weight
+- Live preview ( fast & realtime sync )
+- Light weight
+
+## Dependencies
+- npm
+- denops
 
 ## Installation
 
@@ -28,8 +35,10 @@ Plug 'gen740/Preview.vim', { 'do': 'make install' }
 ```
 
 - Install with [dein](https://github.com/Shougo/dein.vim)
-```
 
+```
+call dein#add('vim-denops/denops.vim')
+call dein#add('gen740/Preview.vim', { 'build': 'make install' })
 ```
 
 ## How To Use
@@ -39,20 +48,26 @@ Plug 'gen740/Preview.vim', { 'do': 'make install' }
 
 ## Configurations
 
-## LoadMap
+- `g:preview_theme`
 
-- [x] code Syntax hightlighting
-- [x] add Dark/Light Mode
-- [x] Katex Support
-- [x] auto start
-- [x] auto Browser Opeen
-- [x] Integrate with nvim-notify
-- [ ] Syncronize Cursor -release
-- [ ] Add custom css feature
-- [ ] support other format (rst, wiki ...)
-- [ ] auto server stop
-- [ ] "tategaki" mode
-- [ ] marmaid or other feature
-- [ ] cursor-position option
-- [ ] Customizable port
-- [ ] support image redering
+      Specify the theme. "default" or "default dark"
+
+      :Default: "default"
+
+- `g:previw_math`
+
+      specify the math rederer. "none" or "katex"
+
+      :Default: "katex"
+
+- `g:preview_auto_start`
+
+      0 or 1
+
+      Start the Preview on start.
+
+- `g:preview_open_cmd`
+
+      Set the Broweser open command
+
+      forexample "let g:preview_open_cmd = 'open -a Safari'"

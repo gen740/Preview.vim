@@ -28,13 +28,15 @@ function preview#theme(theme_name)
     let g:preview_options['theme'] = a:theme_name
     call preview#set_opts()
   else
-    echo 'Preview vim theme supported "default" or "default_dark" option'
+    echo 'Preview.vim supports "default" or "default_dark" theme option'
   endif
 endfunction
 
 function preview#auto_start() abort
-  if g:preview_auto_start == 1 && &filetype ==# 'markdown'
-    call preview#start()
+  if exists ('g:preview_auto_start')
+    if g:preview_auto_start == 1 && &filetype ==# 'markdown'
+      call preview#start()
+    endif
   endif
 endfunction
 
@@ -42,18 +44,26 @@ function preview#auto_browser_open() abort
   if exists('g:preview_open_cmd')
     call system(g:preview_open_cmd . ' http://localhost:3000/previewer')
   endif
-  if has('nvim')
-    if exists('g:preview_enable_notify')
-      if g:preview_enable_notify
-        lua require("notify")(" Server has deployed on http://localhost:3000/previewer")
-      endif
-    endif
-  endif
 endfunction
 
 function preview#send_cursor_linenum() abort
   if g:preview_server_started
     let cursor_linenum = getcurpos()[1]
     call denops#request('preview', 'send_cursor_linenum', [cursor_linenum])
+  endif
+endfunction
+
+function preview#notification(msg) abort
+  let b:preview_notification_msg = a:msg
+  if has('nvim')
+    if exists('g:preview_enable_notify')
+      if g:preview_enable_notify
+        lua require("notify")('Previm.vim: ' .. vim.b.preview_notification_msg)
+      endif
+    else
+      echo '[Previm.vim] ' . a:msg
+    endif
+  else
+    echo '[Previm.vim] ' . a:msg
   endif
 endfunction

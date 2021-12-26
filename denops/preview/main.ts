@@ -5,21 +5,20 @@ import ky from "https://cdn.skypack.dev/ky?dts";
 
 let is_server_ready = false;
 let is_browser_opened = false;
+let notify_once = false;
 let port = 3000;
+let ws: WebSocket; // ws://localhost:8080
 
-async function start_server() {
-  try {
-    let get_ready: { state: string } = await ky.get(
-      "http://localhost:" + port + "/ready",
-    ).json();
-    is_server_ready = get_ready.state === "ready";
-  } catch (e) { // get リクエストに失敗するなら
-    console.log("Server has not been started");
-    is_server_ready = false;
-  }
-  if (!is_server_ready) {
+export async function main(denops: Denops) {
+  async function start_server() {
     try {
-      console.log("Starting Server ...");
+      let get_ready: any = await ky.get("http://localhost:3000/ready").json();
+      // will return { state: "ready" } when server is open
+      is_server_ready = get_ready.state === "ready";
+    } catch (e) { // when server is not ready
+      is_server_ready = false;
+    }
+    if (!is_server_ready) {
       Deno.run({
         cmd: [
           "node",
@@ -29,62 +28,60 @@ async function start_server() {
           ),
         ],
       });
-    } catch (e) {
-      console.log("Server has already started");
+      notify("Starting Server ...");
     }
   }
-}
-let ws: WebSocket;
 
-async function connect_ws() {
-  try {
+  async function connect_ws() {
     ws = new WebSocket("ws://localhost:8080");
-  } catch (e) {
-    console.log(e);
+    ws.onopen = (_event) => {
+    };
+    ws.onmessage = (event) => {
+      let data = JSON.parse(event.data);
+      switch (data.type) {
+        case "notification":
+          is_browser_opened = data.msg.in_browser_opend;
+          send_data(buf_data);
+          break;
+        default:
+      }
+    };
   }
-  ws.onopen = (_event) => {
-    console.log("connected");
-  };
-  ws.onmessage = (event) => {
-    let data = JSON.parse(event.data);
-    switch (data.type) {
-      case "notification":
-        is_browser_opened = data.msg.in_browser_opend;
-        console.log("Sended");
-        send_data(buf_data);
-        break;
-      default:
-    }
-  };
-}
 
-let buf_data: string[];
-let opts_buf: any[];
+  let buf_data: string[];
+  let opts_buf: any[];
 
-function send_data(...data: any[]) {
-  if (ws.readyState === 1) {
-    ws.send(JSON.stringify({ type: "markdown", msg: data[0] }));
-    if (!is_browser_opened) {
-      console.log("Plese Open http://localhost:" + port + "/previewer");
+  function send_data(...data: any[]) {
+    if (ws.readyState === ws.OPEN) {
+      ws.send(JSON.stringify({ type: "markdown", msg: data[0] }));
+      if (!notify_once) {
+        notify("Plese Open http://localhost:" + port + "/previewer ");
+        notify_once = true;
+      }
+    } else {
+      connect_ws();
     }
-  } else {
-    console.log("Server has not been ready");
-    connect_ws();
   }
-}
+  async function notify(msg: string) {
+    execute(
+      denops,
+      `call preview#notification("` + msg + `")`,
+    );
+  }
 
-export async function main(denops: Denops) {
   denops.dispatcher = {
     async set_opts(...data: any[]) {
       opts_buf = data;
-      ws.send(JSON.stringify({ type: "options", msg: data[0] }));
+      if (ws.readyState === ws.OPEN) {
+        ws.send(JSON.stringify({ type: "options", msg: data[0] }));
+      }
     },
     async startup(...text: any[]) {
       connect_ws();
       buf_data = text;
-      await start_server();
+      start_server();
       setTimeout(async () => {
-        if (ws.readyState !== 1) {
+        if (ws.readyState !== ws.OPEN) {
           connect_ws();
         }
         await ky.get(
@@ -96,15 +93,17 @@ export async function main(denops: Denops) {
           denops,
           `call preview#auto_browser_open()`,
         );
-      }, 1000); // サーバーが始まるまで待つ
+      }, 800); // サーバーが始まるまで待つ
     },
     async send_current_buf(...text: any[]) {
       buf_data = text;
-      await start_server();
+      start_server();
       send_data(buf_data);
     },
     async send_cursor_linenum(data: number) {
-      ws.send(JSON.stringify({ type: "cur_pos", msg: data }));
+      if (ws.readyState === ws.OPEN) {
+        ws.send(JSON.stringify({ type: "cur_pos", msg: data }));
+      }
     },
   };
   await execute(

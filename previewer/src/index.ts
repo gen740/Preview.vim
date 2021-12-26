@@ -18,17 +18,22 @@ const setting_file = path.join(__dirname, "./setting.json");
 let preview_opts = {
   cursor_sync_enable: true,
   filetype: "markdown",
-  theme: "default_dark",
+  theme: "default",
   custom_css_dir: false,
   math: 'katex',
   port: 3000,
   ws_port: 8080,
 }
 
+// Load Setting file
 if (fs.existsSync(setting_file)) {
   preview_opts = JSON.parse(fs.readFileSync(setting_file).toString())
 } else {
   fs.writeFileSync(setting_file, JSON.stringify(preview_opts))
+}
+
+async function save_options(opts: any) {
+  fs.writeFileSync(setting_file, JSON.stringify(opts))
 }
 
 function apply_style($2: cheerio.CheerioAPI) {
@@ -54,7 +59,7 @@ function apply_style($2: cheerio.CheerioAPI) {
       onload="renderMathInElement(document.body);"
     ></script>`)
   }
-  let base_theme;
+  let base_theme: string;
   try {
     base_theme = fs.readFileSync(path.join(publicDir, preview_opts.theme + ".css")).toString();
   } catch (e) {
@@ -112,73 +117,79 @@ function markdown_parser(data: string[]): string {
   return result_data;
 }
 
-let wss = new WebSocketServer({ port: preview_opts.ws_port });
 
-wss.on("connection", function connection(ws) {
-  ws.on("message", (data: string) => {
-    let res = JSON.parse(data);
-    switch (res.type) {
-      case "cur_pos":
-        wss.clients.forEach((client) => {
-          if (client.readyState === WebSocket.OPEN) {
-            console.log(res.msg)
-            client.send(JSON.stringify({ type: "cur_pos", msg: res.msg }));
-          };
-        })
-        break;
-      case "markdown":
-        wss.clients.forEach((client) => {
-          if (client.readyState === WebSocket.OPEN) {
-            let res_msg = markdown_parser(res.msg);
-            client.send(JSON.stringify({ type: "show", msg: res_msg }));
-          };
-        })
-        break;
-      case "options":
-        if (preview_opts.theme !== res.msg.theme) {
-          theme_has_changed = true;
-        }
-        preview_opts = clone(res.msg);
-        wss.clients.forEach((client) => {
-          if (client.readyState === WebSocket.OPEN) {
-            if (theme_has_changed) {
-              client.send(JSON.stringify({ type: "theme_has_changed" }));
-              theme_has_changed = false;
-            }
-          };
-        })
-        break;
-      case "notification":
-        if (res.msg === "browser_is_ready") {
+async function main() {
+  let wss = new WebSocketServer({ port: preview_opts.ws_port })
+    .on('error', (err) => {
+      console.log("WebSocket Does not been created");
+    });
+
+  wss.on("connection", function connection(ws) {
+    ws.on("message", (data: string) => {
+      let res = JSON.parse(data);
+      switch (res.type) {
+        case "cur_pos":
           wss.clients.forEach((client) => {
             if (client.readyState === WebSocket.OPEN) {
-              client.send(JSON.stringify({ type: "notification", msg: "browser_is_ready" }));
+              client.send(JSON.stringify({ type: "cur_pos", msg: res.msg }));
             };
           })
-        }
-        break;
-      case "reset_settings":
-        fs.unlink(setting_file, (_err) => { });
-        break;
-      default:
-    }
+          break;
+        case "markdown":
+          wss.clients.forEach((client) => {
+            if (client.readyState === WebSocket.OPEN) {
+              let res_msg = markdown_parser(res.msg);
+              client.send(JSON.stringify({ type: "show", msg: res_msg }));
+            };
+          })
+          break;
+        case "options":
+          preview_opts = clone(res.msg);
+          save_options(res.msg);
+          wss.clients.forEach((client) => {
+            if (client.readyState === WebSocket.OPEN) {
+              if (theme_has_changed) {
+                client.send(JSON.stringify({ type: "theme_has_changed" }));
+              }
+            };
+          })
+          break;
+        case "notification":
+          if (res.msg === "browser_is_ready") {
+            wss.clients.forEach((client) => {
+              if (client.readyState === WebSocket.OPEN) {
+                client.send(JSON.stringify({ type: "notification", msg: "browser_is_ready" }));
+              };
+            })
+          }
+          break;
+        case "reset_settings":
+          fs.unlink(setting_file, (_err) => { });
+          break;
+        default:
+      }
+    });
   });
-});
 
-app.use(express.static(publicDir));
+  app.use(express.static(publicDir));
 
-app.get("/previewer", (_req, res) => {
-  apply_style($);
-  res.send($.html());
-  wss.clients.forEach((client) => {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(JSON.stringify({ type: "notification", msg: { is_browser_opened: true } }));
-    };
+  app.get("/previewer", (_req, res) => {
+    apply_style($);
+    res.send($.html());
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: "notification", msg: { is_browser_opened: true } }));
+      };
+    })
+  });
+
+  app.get("/ready", (_req, res) => {
+    res.send(JSON.stringify({ state: "ready" }));
   })
-});
 
-app.get("/ready", (_req, res) => {
-  res.send(JSON.stringify({ state: "ready" }));
-})
+  app.listen(preview_opts.port).on('error', (err) => {
+    console.log("cannot create HTTP server");
+  });
+}
 
-app.listen(preview_opts.port);
+main();

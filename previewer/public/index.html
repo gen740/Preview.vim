@@ -9,7 +9,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/highlight.min.js"></script>
   <body>
     <div id="content">
-      <h1>\( \frac{a}{b} \)</h1>
+      <h1>Preview.vim</h1>
     </div>
     <script>
       async function connect_ws() {
@@ -39,7 +39,7 @@
               console.log(data.msg);
               document
                 .getElementById("cursor_pos_" + data.msg.toString())
-                .scrollIntoView({block: "center"});
+                .scrollIntoView({ block: "center" });
               break;
             case "theme_has_changed":
               location.reload();
@@ -57,7 +57,8 @@
         };
         ws.onclose = (event) => {
           document.getElementById("content").innerHTML =
-            "<h1>Connection Closed ... Wait for Another Instance</h1>";
+            "<h1>Connection Closed ... </h1>" +
+            "<h1>Waiting For another instance</h1>";
           setTimeout(function () {
             connect_ws();
           }, 500);

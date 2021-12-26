@@ -1,21 +1,16 @@
 *preview-vim.txt*	Preview Plugin
 
-Version: 1.8.1
-Author: kanno <akapanna@gmail.com>
-Maintainer: preview-vim developers
+Version: 0.1
+Author: gen740
 
 ==============================================================================
 CONTENTS						*preview-vim-contents*
 
 Introduction						|preview-vim-introduction|
 Dependencies						|preview-vim-depends|
-Usage							|preview-vim-usage|
 Commands						|preview-vim-command|
 Functions						|preview-vim-functions|
 Settings						|preview-vim-settings|
-Using with open-browser.vim				|preview-vim-openbrowser|
-Changelog						|preview-vim-changelog|
-
 
 ==============================================================================
 INDRODUCTION					*preview-vim-introduction*
@@ -40,11 +35,6 @@ DEPENDENCIES					*preview-depends*
 
 [Optional]
 	- nvim-notify(https://github.com/rcarriga/nvim-notify)
-
-
-==============================================================================
-USAGE						*preview-vim-usage*
-
 
 ==============================================================================
 COMMANDS					*preview-vim-command*
@@ -85,23 +75,21 @@ g:preview_theme
 
 	:Default: "default"
 
-g:previw_math
+g:preview_math					*g:preview_math*
 	type:Stirng
 
 	specify the math rederer. "none" or "katex"
 
 	:Default: "katex"
 
-g:preview_auto_start
+g:preview_auto_start				*g:preview_auto_start*
 	0 or 1
 
 	Start the Preview on start.
 
-g:preview_open_cmd
+g:preview_open_cmd				*g:preview_open_cmd*
 	
 	forexample "let g:preview_open_cmd = 'open -a Safari'"
 
-==============================================================================
-CHANGELOG					*preview-vim-changelog*
 
 vim:tw=78:ts=8:sw=8:ft=help:norl:noexpandtab
