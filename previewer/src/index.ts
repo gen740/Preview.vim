@@ -68,55 +68,20 @@ import { unified } from 'unified'
 import remarkParse from 'remark-parse'
 import remarkRehype from 'remark-rehype'
 import remarkGfm from 'remark-gfm';
-import remarkHighlightjs from 'remark-highlight.js'
 import remarkGemoji from 'remark-gemoji'
 import rehypeStringify from 'rehype-stringify'
 import rehypeRaw from 'rehype-raw'
 import remarkMath from 'remark-math'
 import rehypeKatex from 'rehype-katex'
+import { visit } from 'unist-util-visit'
 
 async function markdown_parser(data: string[]): Promise<string> {
   let data_buf = clone(data);
-  let is_math = false;
-  let is_code_block = false;
-  for (let i in data) {
-    if (data_buf[i].match(/```/)) {
-      is_code_block = !is_code_block;
-      continue;
-    }
-    if (data_buf[i].match(/^\$\$$/)) {
-      if (!is_code_block) {
-        is_math = !is_math;
-      }
-      continue;
-    }
-    if (data_buf[i].match(/^==+$/)) {
-      continue;
-    }
-    if (data_buf[i].match(/^--+$/)) {
-      continue;
-    }
-    if (data_buf[i].match(/^\*\*+$/)) {
-      continue;
-    }
-    if (data_buf[i] === ``) {
-      continue;
-    }
-    if (data_buf[i].match(/^\s+$/g)) {
-      continue;
-    }
-    if (data_buf[i].match(/^\t+$/g)) {
-      continue;
-    }
-    if (data_buf[i][data_buf[i].length - 1] === '|') {
-      continue;
-    }
-    if (!is_math && !is_code_block) {
-      data_buf[i] = data[i] + `\u{0FE0}` + i.toString() + `\u{0FE1}`
-    }
-  }
   let concated_text: string = data_buf.join('\n');
-
+  concated_text = concated_text.replace(/test/g, `ruby`)
+  concated_text = concated_text.replace(/｜/g, `<ruby>`)
+  concated_text = concated_text.replace(/《/g, `<rt>`)
+  concated_text = concated_text.replace(/》/g, `</rt></ruby>`)
   let emoji_enable = false;
   let process2 = () => {
     if (emoji_enable) {
@@ -130,16 +95,21 @@ async function markdown_parser(data: string[]): Promise<string> {
     .use(process2())
     .use(remarkMath)
     .use(remarkGfm)
-    .use(remarkHighlightjs)
     .use(remarkExtendedTable)
     .use(remarkRehype, null, { allowDangerousHtml: true, handlers: Object.assign({}, extendedTableHandlers) })
+    .use(() => (tree) => {
+      visit(tree, (node: any) => {
+        if (node.properties !== undefined && node.position !== undefined)
+          (node.properties as any).id = "line_num_" + JSON.stringify(
+            node.position.start.line
+          );
+      });
+    })
     .use(rehypeKatex)
     .use(rehypeRaw)
     .use(rehypeStringify)
     .process(concated_text)
   let final_data = String(result_data)
-  final_data = final_data.replace(/\u0fe0/g, `<span id='cursor_pos_`)
-  final_data = final_data.replace(/\u0fe1/g, `'></span>`)
   return String(final_data);
 }
 

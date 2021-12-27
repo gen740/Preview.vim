@@ -23,21 +23,12 @@
           switch (data.type) {
             case "show":
               document.getElementById("content").innerHTML = data.msg;
-              // hljs.highlightAll();
-              renderMathInElement(document.body, {
-                delimiters: [
-                  { left: "$$", right: "$$", display: true },
-                  { left: "$", right: "$", display: false },
-                  { left: "\\(", right: "\\)", display: false },
-                  { left: "\\[", right: "\\]", display: true },
-                ],
-                throwOnError: false,
-              });
+              hljs.highlightAll();
               break;
             case "cur_pos":
               console.log(data.msg);
               document
-                .getElementById("cursor_pos_" + data.msg.toString())
+                .getElementById("line_num_" + data.msg.toString())
                 .scrollIntoView({ block: "center" });
               break;
             case "theme_has_changed":

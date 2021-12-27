@@ -1,5 +1,7 @@
 # this is the TEST
 
+test
+
 _Italic_ font _Italic_ is ok?
 
 **bold** and **BOLD**
@@ -53,11 +55,8 @@ int main() {
 }
 ```
 
-    #include <iostream>
-
-    int main() {
-      std::cout << "Hello World" << std::endl;
-    }
+｜ルビ《るび》
+｜ル《・》｜び《・》
 
 | TH  | TH               |
 | --- | ---------------- |
@@ -67,12 +66,12 @@ int main() {
 | --- |
 | TD  |
 
-[link](#Heading࿠6࿡)
+[link](#Heading)
 
 [1]: http
 
 $$
-\frac{a}{b} = \{ \int^a_b f(x) dx \}
+\frac{a}{x} = \int^a_b f(x) + x
 $$
 
 inline math $\alpha = \frac{1}{2}$
