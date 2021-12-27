@@ -2,7 +2,6 @@
 <html>
   <head>
     <title>Preview.vim</title>
-    <div id="_katex_style"></div>
   </head>
   <style id="_base_theme"></style>
   <link id="_highlightjs_theme" />
@@ -24,7 +23,7 @@
           switch (data.type) {
             case "show":
               document.getElementById("content").innerHTML = data.msg;
-              hljs.highlightAll();
+              // hljs.highlightAll();
               renderMathInElement(document.body, {
                 delimiters: [
                   { left: "$$", right: "$$", display: true },

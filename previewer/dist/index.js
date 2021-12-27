@@ -1,35 +1,20 @@
-"use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const marked_1 = require("marked");
-const clone_1 = __importDefault(require("clone"));
-const ws_1 = __importStar(require("ws"));
-const express_1 = __importDefault(require("express"));
-const path = __importStar(require("path"));
-const cheerio = __importStar(require("cheerio"));
-const fs = __importStar(require("fs"));
-const app = (0, express_1.default)();
+import clone from "clone";
+import WebSocket, { WebSocketServer } from "ws";
+import express from "express";
+import * as path from "path";
+import * as url from "url";
+import { remarkExtendedTable, extendedTableHandlers } from 'remark-extended-table';
+import { unified } from 'unified';
+import remarkParse from 'remark-parse';
+import remarkRehype from 'remark-rehype';
+import remarkGfm from 'remark-gfm';
+import remarkGemoji from 'remark-gemoji';
+import rehypeStringify from 'rehype-stringify';
+import rehypeRaw from 'rehype-raw';
+import cheerio from 'cheerio';
+import * as fs from "fs";
+const app = express();
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 let publicDir = path.join(__dirname, "../public");
 let theme_has_changed = false;
 var $ = cheerio.load(fs.readFileSync(path.join(publicDir, "index.html")));
@@ -94,10 +79,28 @@ function apply_style($2) {
         $2("#_highlightjs_theme").replaceWith(`<link id="_highlightjs_theme" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/styles/dark.min.css" /> `);
     }
 }
-function markdown_parser(data) {
-    let data_buf = (0, clone_1.default)(data);
+async function markdown_parser(data) {
+    let data_buf = clone(data);
+    let is_math = false;
+    let is_code_block = false;
     for (let i in data) {
         if (data_buf[i].match(/```/)) {
+            is_code_block = !is_code_block;
+            continue;
+        }
+        if (data_buf[i].match(/^\$\$$/)) {
+            if (!is_code_block) {
+                is_math = !is_math;
+            }
+            continue;
+        }
+        if (data_buf[i].match(/^==+$/)) {
+            continue;
+        }
+        if (data_buf[i].match(/^--+$/)) {
+            continue;
+        }
+        if (data_buf[i].match(/^\*\*+$/)) {
             continue;
         }
         if (data_buf[i] === ``) {
@@ -112,23 +115,27 @@ function markdown_parser(data) {
         if (data_buf[i][data_buf[i].length - 1] === '|') {
             continue;
         }
-        data_buf[i] = data[i] + `\u{0FE0}` + i.toString() + `\u{0FE1}`;
+        if (!is_math && !is_code_block) {
+            data_buf[i] = data[i] + `\u{0FE0}` + i.toString() + `\u{0FE1}`;
+        }
     }
-    let result_data = data_buf.join('\n');
-    // support for katex
-    result_data = result_data.replace(/\\\(/g, `\\\\(`);
-    result_data = result_data.replace(/\\\)/g, `\\\\)`);
-    result_data = result_data.replace(/\\\}/g, `\\\\}`);
-    result_data = result_data.replace(/\\\{/g, `\\\\{`);
-    result_data = result_data.replace(/\\\]/g, `\\\\]`);
-    result_data = result_data.replace(/\\\[/g, `\\\\[`);
-    result_data = marked_1.marked.parse(result_data);
-    result_data = result_data.replace(/\u0fe0/g, `<span id='cursor_pos_`);
-    result_data = result_data.replace(/\u0fe1/g, `'></span>`);
-    return result_data;
+    let concated_text = data_buf.join('\n');
+    // // support for katex
+    // concated_text = concated_text.replace(/\u0fe0/g, `<span id='cursor_pos_`)
+    // concated_text = concated_text.replace(/\u0fe1/g, `'></span>`)
+    const result_data = await unified()
+        .use(remarkParse)
+        .use(remarkGemoji)
+        .use(remarkGfm)
+        .use(remarkExtendedTable)
+        .use(remarkRehype, null, { allowDangerousHtml: true, handlers: Object.assign({}, extendedTableHandlers) })
+        .use(rehypeRaw)
+        .use(rehypeStringify)
+        .process(concated_text);
+    return String(result_data);
 }
 async function main() {
-    let wss = new ws_1.WebSocketServer({ port: preview_opts.ws_port })
+    let wss = new WebSocketServer({ port: preview_opts.ws_port })
         .on('error', (err) => {
         console.log("WebSocket Does not been created");
     });
@@ -138,26 +145,26 @@ async function main() {
             switch (res.type) {
                 case "cur_pos":
                     wss.clients.forEach((client) => {
-                        if (client.readyState === ws_1.default.OPEN) {
+                        if (client.readyState === WebSocket.OPEN) {
                             client.send(JSON.stringify({ type: "cur_pos", msg: res.msg }));
                         }
                         ;
                     });
                     break;
                 case "markdown":
-                    wss.clients.forEach((client) => {
-                        if (client.readyState === ws_1.default.OPEN) {
-                            let res_msg = markdown_parser(res.msg);
+                    wss.clients.forEach(async (client) => {
+                        if (client.readyState === WebSocket.OPEN) {
+                            let res_msg = await markdown_parser(res.msg);
                             client.send(JSON.stringify({ type: "show", msg: res_msg }));
                         }
                         ;
                     });
                     break;
                 case "options":
-                    preview_opts = (0, clone_1.default)(res.msg);
+                    preview_opts = clone(res.msg);
                     save_options(res.msg);
                     wss.clients.forEach((client) => {
-                        if (client.readyState === ws_1.default.OPEN) {
+                        if (client.readyState === WebSocket.OPEN) {
                             if (theme_has_changed) {
                                 client.send(JSON.stringify({ type: "theme_has_changed" }));
                             }
@@ -168,7 +175,7 @@ async function main() {
                 case "notification":
                     if (res.msg === "browser_is_ready") {
                         wss.clients.forEach((client) => {
-                            if (client.readyState === ws_1.default.OPEN) {
+                            if (client.readyState === WebSocket.OPEN) {
                                 client.send(JSON.stringify({ type: "notification", msg: "browser_is_ready" }));
                             }
                             ;
@@ -182,12 +189,12 @@ async function main() {
             }
         });
     });
-    app.use(express_1.default.static(publicDir));
+    app.use(express.static(publicDir));
     app.get("/previewer", (_req, res) => {
         apply_style($);
         res.send($.html());
         wss.clients.forEach((client) => {
-            if (client.readyState === ws_1.default.OPEN) {
+            if (client.readyState === WebSocket.OPEN) {
                 client.send(JSON.stringify({ type: "notification", msg: { is_browser_opened: true } }));
             }
             ;
@@ -199,6 +206,7 @@ async function main() {
     app.listen(preview_opts.port).on('error', (err) => {
         console.log("cannot create HTTP server");
     });
+    console.log("server Started");
 }
 main();
 //# sourceMappingURL=index.js.map

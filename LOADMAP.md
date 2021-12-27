@@ -16,3 +16,11 @@
 - [ ] Customizable port
 - [ ] support image redering
 
+## more feature
+- [ ] emoji
+  - [ ] this will be ok
+- [ ] image
+  - [ ] ![test](http://i.imgur.com/Jjwsc.jpg) ok
+- [ ] yaml
+- [ ] pluntml
+- [ ] marmaid

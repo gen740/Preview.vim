@@ -1,3 +1,2 @@
-
 set runtimepath^=~/home/Labo/Project/Preview.nvim
-let g:denops#debug = 1
+" let g:denops#debug = 1

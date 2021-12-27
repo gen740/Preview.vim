@@ -1,14 +1,17 @@
-import { marked } from "marked";
 import clone from "clone";
 import WebSocket, { WebSocketServer } from "ws";
 
 import express from "express";
 import * as path from "path";
-import * as cheerio from "cheerio";
+import * as url from "url";
+
+
+import cheerio from 'cheerio';
 import * as fs from "fs";
 
 const app = express();
 
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 let publicDir = path.join(__dirname, "../public");
 let theme_has_changed = false
 var $ = cheerio.load(fs.readFileSync(path.join(publicDir, "index.html")));
@@ -37,28 +40,6 @@ async function save_options(opts: any) {
 }
 
 function apply_style($2: cheerio.CheerioAPI) {
-  if (preview_opts.math === 'katex') {
-    $2("#_katex_style").replaceWith(`
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/katex.min.css"
-      integrity="sha384-R4558gYOUz8mP9YWpZJjofhk+zx0AS11p36HnD2ZKj/6JR5z27gSSULCNHIRReVs"
-      crossorigin="anonymous"
-    />
-    <script
-      defer
-      src="https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/katex.min.js"
-      integrity="sha384-z1fJDqw8ZApjGO3/unPWUPsIymfsJmyrDVWC8Tv/a1HeOtGmkwNd/7xUS0Xcnvsx"
-      crossorigin="anonymous"
-    ></script>
-    <script
-      defer
-      src="https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/contrib/auto-render.min.js"
-      integrity="sha384-+XBljXPPiv+OzfbB3cVmLHf4hdUFHlWNZN5spNQ7rmHTXpd7WvJum6fIACpNNfIR"
-      crossorigin="anonymous"
-      onload="renderMathInElement(document.body);"
-    ></script>`)
-  }
   let base_theme: string;
   try {
     base_theme = fs.readFileSync(path.join(publicDir, preview_opts.theme + ".css")).toString();
@@ -82,41 +63,90 @@ function apply_style($2: cheerio.CheerioAPI) {
   }
 }
 
+import { remarkExtendedTable, extendedTableHandlers } from 'remark-extended-table';
+import { unified } from 'unified'
+import remarkParse from 'remark-parse'
+import remarkRehype from 'remark-rehype'
+import remarkGfm from 'remark-gfm';
+import remarkHighlightjs from 'remark-highlight.js'
+import remarkGemoji from 'remark-gemoji'
+import rehypeStringify from 'rehype-stringify'
+import rehypeRaw from 'rehype-raw'
+import remarkMath from 'remark-math'
+import rehypeKatex from 'rehype-katex'
 
-function markdown_parser(data: string[]): string {
+async function markdown_parser(data: string[]): Promise<string> {
   let data_buf = clone(data);
+  let is_math = false;
+  let is_code_block = false;
   for (let i in data) {
     if (data_buf[i].match(/```/)) {
+      is_code_block = !is_code_block;
+      continue;
+    }
+    if (data_buf[i].match(/^\$\$$/)) {
+      if (!is_code_block) {
+        is_math = !is_math;
+      }
+      continue;
+    }
+    if (data_buf[i].match(/^==+$/)) {
+      continue;
+    }
+    if (data_buf[i].match(/^--+$/)) {
+      continue;
+    }
+    if (data_buf[i].match(/^\*\*+$/)) {
       continue;
     }
     if (data_buf[i] === ``) {
       continue;
     }
-    if (data_buf[i].match(/\s+$/g)) {
+    if (data_buf[i].match(/^\s+$/g)) {
       continue;
     }
-    if (data_buf[i].match(/\t+$/g)) {
+    if (data_buf[i].match(/^\t+$/g)) {
       continue;
     }
     if (data_buf[i][data_buf[i].length - 1] === '|') {
       continue;
     }
-    data_buf[i] = data[i] + `\u{0FE0}` + i.toString() + `\u{0FE1}`
+    if (!is_math && !is_code_block) {
+      data_buf[i] = data[i] + `\u{0FE0}` + i.toString() + `\u{0FE1}`
+    }
   }
-  let result_data: string = data_buf.join('\n');
-  // support for katex
-  result_data = result_data.replace(/\\\(/g, `\\\\(`)
-  result_data = result_data.replace(/\\\)/g, `\\\\)`)
-  result_data = result_data.replace(/\\\}/g, `\\\\}`)
-  result_data = result_data.replace(/\\\{/g, `\\\\{`)
-  result_data = result_data.replace(/\\\]/g, `\\\\]`)
-  result_data = result_data.replace(/\\\[/g, `\\\\[`)
-  result_data = marked.parse(result_data);
-  result_data = result_data.replace(/\u0fe0/g, `<span id='cursor_pos_`)
-  result_data = result_data.replace(/\u0fe1/g, `'></span>`)
-  return result_data;
+  let concated_text: string = data_buf.join('\n');
+
+  let emoji_enable = false;
+  let process2 = () => {
+    if (emoji_enable) {
+      return remarkGemoji;
+    } else {
+      return nothing;
+    }
+  }
+  const result_data = await unified()
+    .use(remarkParse)
+    .use(process2())
+    .use(remarkMath)
+    .use(remarkGfm)
+    .use(remarkHighlightjs)
+    .use(remarkExtendedTable)
+    .use(remarkRehype, null, { allowDangerousHtml: true, handlers: Object.assign({}, extendedTableHandlers) })
+    .use(rehypeKatex)
+    .use(rehypeRaw)
+    .use(rehypeStringify)
+    .process(concated_text)
+  let final_data = String(result_data)
+  final_data = final_data.replace(/\u0fe0/g, `<span id='cursor_pos_`)
+  final_data = final_data.replace(/\u0fe1/g, `'></span>`)
+  return String(final_data);
 }
 
+export default function nothing(options = {}): any {
+  return (tree: any) => {
+  }
+}
 
 async function main() {
   let wss = new WebSocketServer({ port: preview_opts.ws_port })
@@ -136,9 +166,9 @@ async function main() {
           })
           break;
         case "markdown":
-          wss.clients.forEach((client) => {
+          wss.clients.forEach(async (client) => {
             if (client.readyState === WebSocket.OPEN) {
-              let res_msg = markdown_parser(res.msg);
+              let res_msg = await markdown_parser(res.msg);
               client.send(JSON.stringify({ type: "show", msg: res_msg }));
             };
           })
@@ -190,6 +220,7 @@ async function main() {
   app.listen(preview_opts.port).on('error', (err) => {
     console.log("cannot create HTTP server");
   });
+  console.log("server Started");
 }
 
 main();
