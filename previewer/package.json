@@ -28,6 +28,7 @@
     "clone": "^2.1.2",
     "highlight.js": "^11.3.1",
     "http": "^0.0.1-security",
+    "rehype-document": "^6.0.1",
     "rehype-katex": "^6.0.2",
     "rehype-raw": "^6.1.0",
     "rehype-sanitize": "^5.0.1",

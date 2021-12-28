@@ -93,7 +93,7 @@ export async function main(denops: Denops) {
           denops,
           `call preview#auto_browser_open()`,
         );
-      }, 800); // サーバーが始まるまで待つ
+      }, 1000); // サーバーが始まるまで待つ
     },
     async send_current_buf(...text: any[]) {
       buf_data = text;

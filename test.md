@@ -1,5 +1,6 @@
 # this is the TEST
 
+
 test
 
 _Italic_ font _Italic_ is ok?
@@ -8,6 +9,7 @@ _Italic_ font _Italic_ is ok?
 :smile:
 
 # Heading
+
 
 # Heading 1
 
@@ -71,7 +73,12 @@ int main() {
 [1]: http
 
 $$
-\frac{a}{x} = \int^a_b f(x) + x
+\frac{a}{x} = \int^a_b f(x) dx
 $$
 
-inline math $\alpha = \frac{1}{2}$
+inline math $math \alpha$
+
+
+
+
+

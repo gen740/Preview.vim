@@ -58,12 +58,12 @@ function preview#notification(msg) abort
   if has('nvim')
     if exists('g:preview_enable_notify')
       if g:preview_enable_notify
-        lua require("notify")('Previm.vim: ' .. vim.b.preview_notification_msg)
+        lua require("notify")('Preview.vim: ' .. vim.b.preview_notification_msg)
       endif
     else
-      echo '[Previm.vim] ' . a:msg
+      echo '[Preview.vim] ' . a:msg
     endif
   else
-    echo '[Previm.vim] ' . a:msg
+    echo '[Preview.vim] ' . a:msg
   endif
 endfunction

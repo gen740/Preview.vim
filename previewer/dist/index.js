@@ -39,6 +39,7 @@ import WebSocket, { WebSocketServer } from "ws";
 import express from "express";
 import * as path from "path";
 import * as url from "url";
+import markdown_renderer from './markdown_render.js';
 import cheerio from 'cheerio';
 import * as fs from "fs";
 var app = express();
@@ -90,74 +91,12 @@ function apply_style($2) {
         $2("#_highlightjs_theme").replaceWith("<link id=\"_highlightjs_theme\" rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/styles/dark.min.css\" /> ");
     }
 }
-import { remarkExtendedTable, extendedTableHandlers } from 'remark-extended-table';
-import { unified } from 'unified';
-import remarkParse from 'remark-parse';
-import remarkRehype from 'remark-rehype';
-import remarkGfm from 'remark-gfm';
-import remarkGemoji from 'remark-gemoji';
-import rehypeStringify from 'rehype-stringify';
-import rehypeRaw from 'rehype-raw';
-import remarkMath from 'remark-math';
-import rehypeKatex from 'rehype-katex';
-import { visit } from 'unist-util-visit';
-function markdown_parser(data) {
-    return __awaiter(this, void 0, void 0, function () {
-        var data_buf, concated_text, emoji_enable, process2, result_data, final_data;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    data_buf = clone(data);
-                    concated_text = data_buf.join('\n');
-                    concated_text = concated_text.replace(/test/g, "ruby");
-                    concated_text = concated_text.replace(/｜/g, "<ruby>");
-                    concated_text = concated_text.replace(/《/g, "<rt>");
-                    concated_text = concated_text.replace(/》/g, "</rt></ruby>");
-                    emoji_enable = false;
-                    process2 = function () {
-                        if (emoji_enable) {
-                            return remarkGemoji;
-                        }
-                        else {
-                            return nothing;
-                        }
-                    };
-                    return [4 /*yield*/, unified()
-                            .use(remarkParse)
-                            .use(process2())
-                            .use(remarkMath)
-                            .use(remarkGfm)
-                            .use(remarkExtendedTable)
-                            .use(remarkRehype, null, { allowDangerousHtml: true, handlers: Object.assign({}, extendedTableHandlers) })
-                            .use(function () { return function (tree) {
-                            visit(tree, function (node) {
-                                if (node.properties !== undefined && node.position !== undefined)
-                                    node.properties.id = "line_num_" + JSON.stringify(node.position.start.line);
-                            });
-                        }; })
-                            .use(rehypeKatex)
-                            .use(rehypeRaw)
-                            .use(rehypeStringify)
-                            .process(concated_text)];
-                case 1:
-                    result_data = _a.sent();
-                    final_data = String(result_data);
-                    return [2 /*return*/, String(final_data)];
-            }
-        });
-    });
-}
-export default function nothing(options) {
-    if (options === void 0) { options = {}; }
-    return function (tree) {
-    };
-}
 function main() {
     return __awaiter(this, void 0, void 0, function () {
         var wss;
         return __generator(this, function (_a) {
             wss = new WebSocketServer({ port: preview_opts.ws_port })
-                .on('error', function (err) {
+                .on('error', function (_err) {
                 console.log("WebSocket Does not been created");
             });
             wss.on("connection", function connection(ws) {
@@ -180,7 +119,7 @@ function main() {
                                     switch (_a.label) {
                                         case 0:
                                             if (!(client.readyState === WebSocket.OPEN)) return [3 /*break*/, 2];
-                                            return [4 /*yield*/, markdown_parser(res.msg)];
+                                            return [4 /*yield*/, markdown_renderer(res.msg, preview_opts)];
                                         case 1:
                                             res_msg = _a.sent();
                                             client.send(JSON.stringify({ type: "show", msg: res_msg }));
@@ -235,7 +174,7 @@ function main() {
             app.get("/ready", function (_req, res) {
                 res.send(JSON.stringify({ state: "ready" }));
             });
-            app.listen(preview_opts.port).on('error', function (err) {
+            app.listen(preview_opts.port).on('error', function (_err) {
                 console.log("cannot create HTTP server");
             });
             console.log("server Started");

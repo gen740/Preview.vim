@@ -29,7 +29,7 @@
               console.log(data.msg);
               document
                 .getElementById("line_num_" + data.msg.toString())
-                .scrollIntoView({ block: "center" });
+                .scrollIntoView({ block: "center", behavior: "smooth" });
               break;
             case "theme_has_changed":
               location.reload();
