@@ -4,14 +4,10 @@ function preview#send_cur_buf() abort
   call denops#request('preview', 'send_current_buf', cur_buf_content)
 endfunction
 
-function preview#startup() abort
+function preview#start() abort
   let curbufnr = getbufinfo()[bufname()]['bufnr']
   let cur_buf_content =  getbufline(curbufnr, 1, '$')
-  call denops#request('preview', 'startup', cur_buf_content)
-endfunction
-
-function preview#start() abort
-  call preview#startup()
+  call denops#request('preview', 'start', cur_buf_content)
   call preview#set_opts()
   let g:preview_server_started = v:true
   augroup PreviewNvim
@@ -24,6 +20,7 @@ function preview#set_opts() abort
 endfunction
 
 function preview#theme(theme_name)
+  call preview#set_opts()
   if a:theme_name ==# 'default' || a:theme_name ==# 'default_dark'
     let g:preview_options['theme'] = a:theme_name
     call preview#set_opts()

@@ -71,3 +71,58 @@ call dein#add('gen740/Preview.vim', { 'build': 'make install' })
       Set the Broweser open command
 
       forexample "let g:preview_open_cmd = 'open -a Safari'"
+
+- g:preview_enable_gfm
+
+      0 or 1
+
+      enable Github Flavor Markdown (table, link .etc)
+
+      :Default: 1
+
+- g:preview_enable_emoji
+
+      0 or 1
+
+      enable Emoji
+
+      :Default: 1
+
+- g:preview_enable_rawHTML 
+
+      0 or 1
+
+      enable rawHTML tag in Markdown
+
+      :Default: 1
+
+- g:preview_enable_notify
+
+      0 or 1
+
+      Use nvim-notify to Notification, Need (https://github.com/rcarriga/nvim-notify)
+      Plugin
+
+      :Default: 0
+
+- g:preview_enable_plantuml
+
+      0 or 1
+
+      enable plantuml in Codeblock
+
+      ```pluntuml
+      ```
+
+      :Default: 0
+
+- g:preview_enable_mermaid
+
+      0 or 1
+
+      enable mermaid in Codeblock
+
+      ```mermaid
+      ```
+
+      :Default: 0

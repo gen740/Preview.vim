@@ -4,14 +4,20 @@
     <title>Preview.vim</title>
   </head>
   <style id="_base_theme"></style>
+  <style id="_preview_theme"></style>
   <link id="_highlightjs_theme" />
+  <div id="_mermaid_script"></div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/highlight.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
   <body>
-    <div id="endOfContent"></div>
-    <div id="content">
-      <h1>Preview.vim</h1>
+    <div class="wrapper">
+      <div id="StartOfContent"></div>
+      <div id="content">
+        <h1>Preview.vim</h1>
+      </div>
+      <div id="EndOfContent"></div>
     </div>
-    <div id="endOfContent"></div>
+
     <script>
       async function connect_ws() {
         let ws = new WebSocket("ws://localhost:8080");
@@ -22,18 +28,23 @@
         };
         ws.onmessage = (event) => {
           let data = JSON.parse(event.data);
+          console.log(data);
           switch (data.type) {
             case "show":
               document.getElementById("content").innerHTML = data.msg;
+              if (data.mermaid) {
+                mermaid.init({ noteMargin: 10 }, ".mermaid");
+              }
               hljs.highlightAll();
               break;
             case "cur_pos":
-              console.log(data.msg);
-              document
-                .getElementById("line_num_" + data.msg.toString())
-                .scrollIntoView({ block: "center", behavior: "smooth" });
+              try {
+                document
+                  .getElementById("line_num_" + data.msg.toString())
+                  .scrollIntoView({ block: "center", behavior: "smooth" });
+              } catch (e) {}
               break;
-            case "theme_has_changed":
+            case "reload":
               location.reload();
               break;
             default:

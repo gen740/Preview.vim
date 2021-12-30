@@ -71,6 +71,10 @@
 - filetype
 
 ## Release ver0.2
-- MoreFeature
+- Add MathJax
+- Add Plantuml
+- Add Marmaid
+- Change to Remarkjs
+- add Options
 
 
