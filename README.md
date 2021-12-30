@@ -48,81 +48,29 @@ call dein#add('gen740/Preview.vim', { 'build': 'make install' })
 
 ## Configurations
 
-- `g:preview_theme`
+Default Configuration is following
+```vim
 
-      Specify the theme. "default" or "default dark"
+let g:preview_theme = "default" " Specify the theme. "default" or "default dark"
 
-      :Default: "default"
+let g:previw_math = "Katex" " specify the math rederer. "none", "Katex" or "MathJax"
 
-- `g:previw_math`
+let g:preview_auto_start = 1  " Start the Preview on start.
 
-      specify the math rederer. "none", "Katex" or "MathJax"
+let g:preview_open_cmd = "" " Set the Broweser open command
+" for example "let g:preview_open_cmd = 'open -a Safari'"
 
-      :Default: "Katex"
+let g:preview_enable_gfm = 1 " enable Github Flavor Markdown (table, link .etc)
 
-- `g:preview_auto_start`
+let g:preview_enable_emoji = 1 " enable Emoji
 
-      0 or 1
+let g:preview_enable_rawHTML` = 1 " enable rawHTML tag in Markdown
 
-      Start the Preview on start.
+let g:preview_enable_notify = 0  " Use nvim-notify to Notification
 
-- `g:preview_open_cmd`
+let g:preview_enable_plantuml = 0 " enable plantuml
 
-      Set the Broweser open command
+let g:preview_enable_mermaid = 0 " enable mermaid
 
-      forexample "let g:preview_open_cmd = 'open -a Safari'"
+```
 
-- `g:preview_enable_gfm`
-
-      0 or 1
-
-      enable Github Flavor Markdown (table, link .etc)
-
-      :Default: 1
-
-- `g:preview_enable_emoji`
-
-      0 or 1
-
-      enable Emoji
-
-      :Default: 1
-
-- `g:preview_enable_rawHTML` 
-
-      0 or 1
-
-      enable rawHTML tag in Markdown
-
-      :Default: 1
-
-- `g:preview_enable_notify`
-
-      0 or 1
-
-      Use nvim-notify to Notification, Need (https://github.com/rcarriga/nvim-notify)
-      Plugin
-
-      :Default: 0
-
-- `g:preview_enable_plantuml`
-
-      0 or 1
-
-      enable plantuml in Codeblock
-
-      ```pluntuml
-      ```
-
-      :Default: 0
-
-- `g:preview_enable_mermaid`
-
-      0 or 1
-
-      enable mermaid in Codeblock
-
-      ```mermaid
-      ```
-
-      :Default: 0
