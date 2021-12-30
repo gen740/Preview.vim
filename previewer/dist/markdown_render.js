@@ -1,6 +1,7 @@
 import clone from "clone";
 import { performance } from "perf_hooks";
 import { unified } from 'unified';
+import plantumlEncoder from "plantuml-encoder";
 import rehypeDocument from 'rehype-document';
 import rehypeKatex from 'rehype-katex';
 import rehypeRaw from 'rehype-raw';
@@ -20,9 +21,9 @@ export default async function markdown_rederer(data, opts) {
     }
     let data_buf = clone(data);
     let concated_text = data_buf.join('\n');
-    concated_text = concated_text.replace(/｜/g, `<ruby>`);
-    concated_text = concated_text.replace(/《/g, `<rt>`);
-    concated_text = concated_text.replace(/》/g, `</rt></ruby>`);
+    // concated_text = concated_text.replace(/｜/g, `<ruby>`)
+    // concated_text = concated_text.replace(/《/g, `<rt>`)
+    // concated_text = concated_text.replace(/》/g, `</rt></ruby>`)
     let Emoji = () => {
         if (opts.emoji) {
             return remarkGemoji;
@@ -31,9 +32,9 @@ export default async function markdown_rederer(data, opts) {
             return () => { };
         }
     };
-    let Table = () => {
-        if (opts.table) {
-            return remarkExtendedTable;
+    let GFM = () => {
+        if (opts.GFM) {
+            return remarkGfm;
         }
         else {
             return () => { };
@@ -70,24 +71,34 @@ export default async function markdown_rederer(data, opts) {
             return () => { };
         }
     };
+    let PlantUML = () => {
+        if (opts.plantuml) {
+            return remarkPlantUML;
+        }
+        else {
+            return () => { };
+        }
+    };
     const result_data = await unified()
         .use(remarkParse)
         .use(Emoji())
-        .use(Table())
-        .use(remarkGfm)
+        .use(remarkExtendedTable)
+        .use(GFM())
         .use(Math())
         .use(remarkRehype, null, { allowDangerousHtml: true, handlers: Object.assign({}, extendedTableHandlers) })
+        .use(RawHTML())
         .use(() => (tree) => {
         visit(tree, (node) => {
             if (node.properties !== undefined && node.position !== undefined)
                 node.properties.id = "line_num_" + JSON.stringify(node.position.start.line);
         });
     })
-        .use(RawHTML())
         .use(MathCompilar())
         .use(rehypeDocument, {
         css: 'https://cdn.jsdelivr.net/npm/katex@0.15.0/dist/katex.min.css'
     })
+        .use(PlantUML())
+        .use(remarkMermaid)
         .use(rehypeStringify)
         .process(concated_text);
     let final_data = String(result_data);
@@ -96,5 +107,31 @@ export default async function markdown_rederer(data, opts) {
         console.log((end - start) + "time");
     }
     return String(final_data);
+}
+function remarkPlantUML() {
+    const options = { baseUrl: "https://www.plantuml.com/plantuml/png" };
+    return (tree) => {
+        visit(tree, (node) => {
+            if (node.tagName === "code"
+                && JSON.stringify(node.properties.className) === JSON.stringify(['language-plantuml'])) {
+                node.type = "element";
+                node.tagName = "image";
+                node.properties.src = `${options.baseUrl.replace(/\/$/, "")}/${plantumlEncoder.encode(node.children[0].value)}`;
+                node.children[0].value = '';
+            }
+        });
+    };
+}
+function remarkMermaid() {
+    return (tree) => {
+        visit(tree, (node) => {
+            if (node.tagName === "code"
+                && JSON.stringify(node.properties.className) === JSON.stringify(['language-mermaid'])) {
+                node.type = "element";
+                node.tagName = "div";
+                node.properties.className = ['mermaid'];
+            }
+        });
+    };
 }
 //# sourceMappingURL=markdown_render.js.map

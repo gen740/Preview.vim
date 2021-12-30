@@ -32,7 +32,7 @@ export async function main(denops: Denops) {
           denops,
           `call preview#auto_browser_open()`,
         );
-      }, 1000); // サーバーが始まるまで待つ
+      }, 1500); // サーバーが始まるまで待つ
       if (!cl.is_server_ready) {
         console.log("Fail to Start Server");
       }

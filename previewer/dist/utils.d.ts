@@ -5,9 +5,9 @@ export interface PreviewOptions {
     useTyporaTheme: string;
     custom_css_dir: string;
     math: string;
-    table: boolean;
-    pluntml: boolean;
-    marmaid: boolean;
+    GFM: boolean;
+    plantuml: boolean;
+    mermaid: boolean;
     chartjs: boolean;
     emoji: boolean;
     enableRawHTML: boolean;

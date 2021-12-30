@@ -20,7 +20,7 @@ var $ = cheerio.load(fs.readFileSync(path.join(publicDir, "index.html")));
 const setting_file = path.join(__dirname, "./setting.json");
 
 let preview_opts: PreviewOptions = {
-  DEBUG: true, // :OK:
+  DEBUG: false, // :OK:
   cursor_sync_enable: "auto", // :OK:
   theme: "default_dark", // TODO:
   useTyporaTheme: "none", // TODO:
