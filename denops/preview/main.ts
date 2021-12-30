@@ -15,7 +15,7 @@ export async function main(denops: Denops) {
       }
     },
 
-    async startup(...text: any[]) {
+    async start(...text: any[]) {
       cl.connect_ws();
       cl.buf_data = text;
       cl.start_server();
@@ -33,6 +33,13 @@ export async function main(denops: Denops) {
           `call preview#auto_browser_open()`,
         );
       }, 1000); // サーバーが始まるまで待つ
+      if (!cl.is_server_ready) {
+        console.log("Fail to Start Server");
+      }
+      if (!cl.notify_once) {
+        cl.notify("Plese Open http://localhost:" + cl.port + "/previewer ");
+        cl.notify_once = true;
+      }
     },
 
     async send_current_buf(...text: any[]) {

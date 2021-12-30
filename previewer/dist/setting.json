@@ -1,1 +1,1 @@
-{"emoji":true,"port":3000,"enableRawHTML":true,"table":true,"math":"katex","DEBUG":true,"pluntml":true,"marmaid":true,"ws_port":8080,"useTyporaTheme":"none","chartjs":true,"custom_css_dir":"none","cursor_sync_mode":"auto","theme":"default_dark"}
+{"DEBUG":true,"cursor_sync_enable":"auto","theme":"default","useTyporaTheme":"none","custom_css_dir":"none","math":"Katex","table":true,"pluntml":true,"marmaid":true,"chartjs":true,"emoji":true,"enableRawHTML":true,"port":3000,"ws_port":8080}

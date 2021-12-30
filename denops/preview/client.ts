@@ -7,10 +7,9 @@ export class Client {
   buf_data: string[];
   opts_buf: any[];
   is_server_ready = false;
-  is_browser_opened = false;
   notify_once = false;
   port = 3000;
-  ws: WebSocket; // ws://localhost:8080
+  ws = new WebSocket("ws://localhost:8080");
   denops: Denops;
 
   constructor(denops: Denops) {
@@ -46,7 +45,6 @@ export class Client {
     if (this.ws.readyState === this.ws.OPEN) {
       this.ws.send(JSON.stringify({ type: "markdown", msg: data[0] }));
       if (!this.notify_once) {
-        this.notify("Plese Open http://localhost:" + this.port + "/previewer ");
         this.notify_once = true;
       }
     } else {
@@ -62,7 +60,6 @@ export class Client {
       let data = JSON.parse(event.data);
       switch (data.type) {
         case "notification":
-          this.is_browser_opened = data.msg.in_browser_opend;
           this.send_data(this.buf_data);
           break;
         default:

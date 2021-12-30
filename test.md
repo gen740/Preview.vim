@@ -1,15 +1,11 @@
 # this is the TEST
 
-
-test
-
 _Italic_ font _Italic_ is ok?
 
 **bold** and **BOLD**
 :smile:
 
 # Heading
-
 
 # Heading 1
 
@@ -35,8 +31,6 @@ _Italic_ font _Italic_ is ok?
 
 1. One
 1. Two
-1. Three
-
 1) One
 2) Two
 3) Three
@@ -56,13 +50,18 @@ int main() {
   std::cout << "Hello World" << std::endl;
 }
 ```
+heth
+
+- [x] test
+
+* [ ] test
 
 ｜ルビ《るび》
 ｜ル《・》｜び《・》
 
 | TH  | TH               |
 | --- | ---------------- |
-| TD  | セル内で<br>改行 |
+| TD  | セル内で<br>改行|
 
 | TH  |
 | --- |
@@ -72,13 +71,34 @@ int main() {
 
 [1]: http
 
+<em>euahoetuh</em>
+
+
 $$
 \frac{a}{x} = \int^a_b f(x) dx
+
 $$
 
-inline math $math \alpha$
+# PluntUML
 
+```plantuml Start
+Alice -> Bob: Authentication Request
+Bob --> Alice: Authentication Response
 
+Alice -> Bob: Another authentication Request
+Alice <-- Bob: another authentication Response
+```
 
+```mermaid
+graph TD; entry((Entry)); click entry nodeClick;
 
+```
 
+```mermaid
+graph TD;
+    A-->B;
+    A-->C;
+    B-->D;
+    C-->D;
+
+```

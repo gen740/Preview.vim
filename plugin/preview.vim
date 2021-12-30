@@ -13,10 +13,10 @@ if !exists('g:preview_vim_options')
         \ 'theme'               : 'default_dark',
         \ 'useTyporaTheme'      : 'none',
         \ 'custom_css_dir'      : 'none',
-        \ 'math'                : 'katex',
-        \ 'table'               : v:true,
-        \ 'pluntml'             : v:true,
-        \ 'marmaid'             : v:true,
+        \ 'math'                : 'Katex',
+        \ 'GFM'                 : v:true,
+        \ 'plantuml'             : v:false,
+        \ 'marmaid'             : v:false,
         \ 'chartjs'             : v:true,
         \ 'emoji'               : v:true,
         \ 'enableRawHTML'       : v:true,
@@ -25,25 +25,44 @@ if !exists('g:preview_vim_options')
         \ }
 endif
 
-if !exists('g:preview_theme')
-  let g:preview_options['theme'] = 'default'
-else
+if exists('g:preview_theme')
   let g:preview_options['theme'] = g:preview_theme
 endif
 
 if !exists('g:preview_math')
-  let g:preview_options['math'] = 'katex'
+  let g:preview_options['math'] = 'Katex'
 else
-  if g:preview_math ==# 'katex'
-    let g:preview_options['math'] = 'katex'
+  if g:preview_math ==# 'Katex'
+    let g:preview_options['math'] = 'Katex'
   elseif g:preview_math ==# 'none'
     let g:preview_options['math'] = 'none'
   elseif g:preview_math ==# 'MathJax'
     let g:preview_options['math'] = 'MathJax'
   else
-    echo 'You cannot set ' . g:preview_math . ' to g:preview_math. set "katex" or "none"'
+    echo 'You cannot set ' . g:preview_math . ' to g:preview_math. set "Katex" or "none"'
   endif
 endif
+
+if exists('g:preview_enable_gfm')
+  let g:preview_options['GFM'] = g:preview_enable_gfm
+endif
+
+if exists('g:preview_enable_emoji')
+  let g:preview_options['emoji'] = g:preview_enable_emoji
+endif
+
+if exists('g:preview_enable_rawHTML')
+  let g:preview_options['enableRawHTML'] = g:preview_enable_rawHTML
+endif
+
+if exists('g:preview_enable_plantuml')
+  let g:preview_options['plantuml'] = g:preview_enable_plantuml
+endif
+
+if exists('g:preview_enable_mermaid')
+  let g:preview_options['mermaid'] = g:preview_enable_mermaid
+endif
+
 
 " AutoStart Options
 
