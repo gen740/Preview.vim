@@ -1,11 +1,12 @@
 import clone from "clone";
 import WebSocket, { WebSocketServer } from "ws";
 
+import { PreviewOptions } from "./utils.js"
+
 import express from "express";
 import * as path from "path";
 import * as url from "url";
 import markdown_renderer from './markdown_render.js'
-
 
 import cheerio from 'cheerio';
 import * as fs from "fs";
@@ -19,14 +20,21 @@ var $ = cheerio.load(fs.readFileSync(path.join(publicDir, "index.html")));
 
 const setting_file = path.join(__dirname, "./setting.json");
 
-let preview_opts = {
-  cursor_sync_enable: true,
-  filetype: "markdown",
-  theme: "default",
-  custom_css_dir: false,
-  math: 'katex',
-  port: 3000,
-  ws_port: 8080,
+let preview_opts: PreviewOptions = {
+  DEBUG: true,
+  cursor_sync_enable: "auto", // TODO:
+  theme: "default", // TODO:
+  useTyporaTheme: "none", // TODO:
+  custom_css_dir: "none", // TODO:
+  math: 'Katex', // TODO:
+  table: true, // TODO:
+  pluntml: true, // TODO:
+  marmaid: true, // TODO:
+  chartjs: true, // TODO:
+  emoji: true, // TODO:
+  enableRawHTML: true, // TODO:
+  port: 3000, // TODO:
+  ws_port: 8080, // TODO:
 }
 
 // Load Setting file
@@ -120,7 +128,7 @@ async function main() {
   app.use(express.static(publicDir));
 
   app.get("/previewer", (_req, res) => {
-    apply_style($);
+    // apply_style($);
     res.send($.html());
     wss.clients.forEach((client) => {
       if (client.readyState === WebSocket.OPEN) {
@@ -136,6 +144,7 @@ async function main() {
   app.listen(preview_opts.port).on('error', (_err) => {
     console.log("cannot create HTTP server");
   });
+
   console.log("server Started");
 }
 

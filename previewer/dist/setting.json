@@ -1,1 +1,1 @@
-{"ws_port":8080,"cursor_sync_enable":true,"port":3000,"filetype":"markdown","custom_css_dir":false,"math":"katex","theme":"default_dark"}
+{"emoji":true,"port":3000,"enableRawHTML":true,"table":true,"math":"katex","DEBUG":true,"pluntml":true,"marmaid":true,"ws_port":8080,"useTyporaTheme":"none","chartjs":true,"custom_css_dir":"none","cursor_sync_mode":"auto","theme":"default_dark"}

@@ -5,13 +5,13 @@ Preview Markdown Plugin For Vim/Neovim
 This Project is WORK IN PROGRESS.
 There might be some big change on future commit ...
 
-
 ## Feature
 
 - Live preview ( fast & realtime sync )
 - Light weight
 
 ## Dependencies
+
 - npm
 - denops
 
