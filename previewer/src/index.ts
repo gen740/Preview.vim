@@ -6,7 +6,7 @@ import { PreviewOptions } from "./utils.js"
 import express from "express";
 import * as path from "path";
 import * as url from "url";
-import markdown_renderer from './markdown_render.js'
+import { PreviewRenderer } from './markdown_render.js'
 
 import cheerio from 'cheerio';
 import * as fs from "fs";
@@ -83,6 +83,8 @@ function apply_style($2: any) {
 }
 
 async function main() {
+  let cur_position_arr: number[] = []
+  let renderer = new PreviewRenderer(cur_position_arr)
   let wss = new WebSocketServer({ port: preview_opts.ws_port })
     .on('error', (_err) => {
       console.log("WebSocket Does not been created");
@@ -91,21 +93,40 @@ async function main() {
   wss.on("connection", function connection(ws) {
     ws.on("message", (data: string) => {
       let res = JSON.parse(data);
-      if (preview_opts.DEBUG) {
-        console.log(res);
-      }
+      // if (preview_opts.DEBUG) {
+      //   console.log(res);
+      // }
       switch (res.type) {
         case "cur_pos":
+          let cursor_position_now = 0
+          let offset = 0
+          for (const i of renderer.cur_pos_arr) {
+            if (i === res.msg) {
+              cursor_position_now = res.msg;
+              offset = 0;
+              break;
+            }
+            if (i > res.msg) {
+              offset = offset / (i - cursor_position_now + 1);
+              console.log(offset);
+              console.log(res.msg - cursor_position_now);
+              break;
+            }
+            if (i < res.msg) {
+              cursor_position_now = i
+              offset = res.msg - i
+            }
+          }
           wss.clients.forEach((client) => {
             if (client.readyState === WebSocket.OPEN) {
-              client.send(JSON.stringify({ type: "cur_pos", msg: res.msg }));
+              client.send(JSON.stringify({ type: "cur_pos", msg: cursor_position_now, offset: offset }));
             };
           })
           break;
         case "markdown":
           wss.clients.forEach(async (client) => {
             if (client.readyState === WebSocket.OPEN) {
-              let res_msg = await markdown_renderer(res.msg, preview_opts);
+              let res_msg = await renderer.markdown_render(res.msg, preview_opts);
               client.send(JSON.stringify({
                 type: "show", mermaid: preview_opts.mermaid, msg: res_msg
               }));

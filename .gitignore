@@ -17,6 +17,7 @@ __pycache__
 
 # nodejs
 node_modules
+dist
 
 # Rust
 target

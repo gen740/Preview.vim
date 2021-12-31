@@ -16,23 +16,24 @@ export async function main(denops: Denops) {
     },
 
     async start(...text: any[]) {
-      cl.connect_ws();
+      await cl.connect_ws();
       cl.buf_data = text;
-      cl.start_server();
-      setTimeout(async () => {
-        if (cl.ws.readyState !== cl.ws.OPEN) {
-          cl.connect_ws();
-        }
-        await ky.get(
-          "http://localhost:" + cl.port + "/ready",
-        );
-        cl.ws.send(JSON.stringify({ type: "options", msg: cl.opts_buf[0] }));
+      await cl.start_server();
+      if (!cl.is_server_ready) {
+        setTimeout(async () => {
+          if (cl.ws.readyState !== cl.ws.OPEN) {
+            cl.connect_ws();
+          }
+          cl.ws.send(JSON.stringify({ type: "options", msg: cl.opts_buf[0] }));
+          cl.send_data(cl.buf_data);
+          await execute(
+            denops,
+            `call preview#auto_browser_open()`,
+          );
+        }, 1500); // サーバーが始まるまで待つ
+      } else {
         cl.send_data(cl.buf_data);
-        await execute(
-          denops,
-          `call preview#auto_browser_open()`,
-        );
-      }, 1500); // サーバーが始まるまで待つ
+      }
       if (!cl.is_server_ready) {
         console.log("Fail to Start Server");
       }
@@ -44,7 +45,9 @@ export async function main(denops: Denops) {
 
     async send_current_buf(...text: any[]) {
       cl.buf_data = text;
-      cl.start_server();
+      if (!cl.is_server_ready) {
+        cl.start_server();
+      }
       cl.send_data(cl.buf_data);
     },
 
@@ -57,6 +60,10 @@ export async function main(denops: Denops) {
 
   await execute(
     denops,
-    `call preview#auto_start()`,
+    ` if exists ('g:preview_auto_start')
+        if g:preview_auto_start == 1 && &filetype ==# 'markdown'
+          call preview#start()
+        endif
+      endif`,
   );
 }

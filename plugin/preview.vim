@@ -8,14 +8,14 @@ set cpoptions&vim
 
 if !exists('g:preview_vim_options')
   let g:preview_options = {
-        \ 'DEBUG'               : v:true,
+        \ 'DEBUG'               : v:false,
         \ 'cursor_sync_mode'    : 'auto',
         \ 'theme'               : 'default_dark',
         \ 'useTyporaTheme'      : 'none',
         \ 'custom_css_dir'      : 'none',
         \ 'math'                : 'Katex',
         \ 'GFM'                 : v:true,
-        \ 'plantuml'             : v:false,
+        \ 'plantuml'            : v:false,
         \ 'marmaid'             : v:false,
         \ 'chartjs'             : v:true,
         \ 'emoji'               : v:true,
@@ -23,6 +23,10 @@ if !exists('g:preview_vim_options')
         \ 'port'                : 3000,
         \ 'ws_port'             : 8080,
         \ }
+endif
+
+if exists('g:preview_DEBUG')
+  let g:preview_options['DEBUG'] = g:preview_DEBUG
 endif
 
 if exists('g:preview_theme')
@@ -63,22 +67,32 @@ if exists('g:preview_enable_mermaid')
   let g:preview_options['mermaid'] = g:preview_enable_mermaid
 endif
 
+if !exists('g:preview_disable_cursorSync')
+  let g:preview_enable_cursorSync = v:true
+endif
 
-" AutoStart Options
+if !exists('g:preview_enable_bufSync')
+  let g:preview_enable_bufSync = v:true
+endif
+
+if !exists('g:preview_fast_bufSync')
+  let g:preview_fast_bufSync = v:true
+endif
 
 let g:preview_server_started = v:false
-" g:preview_enable_cursor_sync
-" g:preview_theme " default/ default_dark
-" g:preview_custom_css_dir
-" let g:preview_math = ''
-" Set all options
+
+if g:preview_enable_cursorSync
+  augroup PreviewSendCUrsorPos
+    au!
+    autocmd CursorMoved,CursorMovedI *.md call preview#send_cursor_linenum()
+  augroup END
+endif
+
 
 command PreviewStart call preview#start()
-" command PreviewSync
+command PreviewSync call preview#send_cur_buf()
 " command PreviewStop
 " command PreviewOpen
-
-autocmd CursorMoved,CursorMovedI,TextChanged,TextChangedI,TextChangedP *.md call preview#send_cursor_linenum()
 
 let &cpoptions = s:save_cpo
 unlet s:save_cpo

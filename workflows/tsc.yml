@@ -1,0 +1,16 @@
+on:
+  push:
+  pull_request:
+
+jobs:
+  tsc:
+    name: tsc
+    runs-on: ubuntu-latest
+    steps:
+      - name: install node v17
+        with:
+          node-version: 17
+      - name: npm install
+        run: cd previewer && npm install
+      - name: tsc
+        run: cd previewer && npm run-script build

@@ -2,7 +2,9 @@
 
 Preview Markdown Plugin For Vim/Neovim
 
+
 This Project is WORK IN PROGRESS.
+teth
 There might be some big change on future commit ...
 
 ## Feature
@@ -24,6 +26,7 @@ use({
     "gen740/Preview.vim",
     requires = "vim-denops/denops.vim",
     run = "make install"
+
 })
 ```
 
@@ -71,7 +74,5 @@ let g:preview_enable_notify = 0  " Use nvim-notify to Notification
 let g:preview_enable_plantuml = 0 " enable plantuml
 
 let g:preview_enable_mermaid = 0 " enable mermaid
-
-```
 
 ```

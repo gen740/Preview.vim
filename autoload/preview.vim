@@ -1,22 +1,40 @@
 function preview#send_cur_buf() abort
-  let curbufnr = getbufinfo()[bufname()]['bufnr']
+  let curbufnr = bufnr(bufname())
   let cur_buf_content =  getbufline(curbufnr, 1, '$')
-  call denops#request('preview', 'send_current_buf', cur_buf_content)
+  if g:preview_server_started
+    call denops#request('preview', 'send_current_buf', cur_buf_content)
+  endif
 endfunction
 
 function preview#start() abort
   let curbufnr = getbufinfo()[bufname()]['bufnr']
   let cur_buf_content =  getbufline(curbufnr, 1, '$')
   call denops#request('preview', 'start', cur_buf_content)
-  call preview#set_opts()
   let g:preview_server_started = v:true
-  augroup PreviewNvim
-    autocmd TextChangedI,TextChangedP,TextChanged <buffer> call preview#send_cur_buf()
+  call preview#set_opts()
+  if g:preview_enable_bufSync
+    if g:preview_fast_bufSync
+      augroup PreviewNvim
+        au!
+        autocmd TextChangedI,TextChangedP,TextChanged <buffer> call preview#send_cur_buf()
+      augroup END
+    else
+      augroup PreviewNvim
+        au!
+        autocmd BufWrite,FileWrite <buffer> call preview#send_cur_buf()
+      augroup END
+    endif
+  endif
+  augroup PreviewFileChange
+    au!
+    au BufEnter,WinEnter,BufWinEnter,TabEnter *.md call preview#send_cur_buf()
   augroup END
 endfunction
 
 function preview#set_opts() abort
-  call denops#request('preview', 'set_opts', [g:preview_options])
+  if g:preview_server_started
+    call denops#request('preview', 'set_opts', [g:preview_options])
+  endif
 endfunction
 
 function preview#theme(theme_name)
@@ -26,14 +44,6 @@ function preview#theme(theme_name)
     call preview#set_opts()
   else
     echo 'Preview.vim supports "default" or "default_dark" theme option'
-  endif
-endfunction
-
-function preview#auto_start() abort
-  if exists ('g:preview_auto_start')
-    if g:preview_auto_start == 1 && &filetype ==# 'markdown'
-      call preview#start()
-    endif
   endif
 endfunction
 

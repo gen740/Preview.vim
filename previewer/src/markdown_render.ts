@@ -22,133 +22,145 @@ import { visit } from 'unist-util-visit'
 
 var start: number, end: number;
 
-export default async function markdown_rederer(data: string[], opts: PreviewOptions)
-  : Promise<string> {
-  if (opts.DEBUG) {
-    start = performance.now();
+export class PreviewRenderer {
+  cur_pos_arr: number[];
+
+  constructor(cur_pos_arr: number[]) {
+    this.cur_pos_arr = cur_pos_arr
   }
 
-  let data_buf = clone(data);
-  let concated_text: string = data_buf.join('\n');
-
-  // concated_text = concated_text.replace(/｜/g, `<ruby>`)
-  // concated_text = concated_text.replace(/《/g, `<rt>`)
-  // concated_text = concated_text.replace(/》/g, `</rt></ruby>`)
-
-  let Emoji = () => {
-    if (opts.emoji) {
-      return remarkGemoji;
-    } else {
-      return () => { };
+  async markdown_render(data: string[], opts: PreviewOptions)
+    : Promise<string> {
+    if (opts.DEBUG) {
+      start = performance.now();
     }
-  }
 
-  let GFM = () => {
-    if (opts.GFM) {
-      return remarkGfm;
-    } else {
-      return () => { };
+    let data_buf = clone(data);
+    let concated_text: string = data_buf.join('\n');
+
+    // concated_text = concated_text.replace(/｜/g, `<ruby>`)
+    // concated_text = concated_text.replace(/《/g, `<rt>`)
+    // concated_text = concated_text.replace(/》/g, `</rt></ruby>`)
+
+    let Emoji = () => {
+      if (opts.emoji) {
+        return remarkGemoji;
+      } else {
+        return () => { };
+      }
     }
-  }
 
-  let Math = () => {
-    if (opts.math === "none") {
-      return () => { };
-    } else {
-      return remarkMath;
+    let GFM = () => {
+      if (opts.GFM) {
+        return remarkGfm;
+      } else {
+        return () => { };
+      }
     }
-  }
 
-  let RawHTML = () => {
-    if (opts.enableRawHTML) {
-      return rehypeRaw;
-    } else {
-      return () => { };
+    let Math = () => {
+      if (opts.math === "none") {
+        return () => { };
+      } else {
+        return remarkMath;
+      }
     }
-  }
 
-  let MathCompilar = () => {
-    if (opts.math === "none") {
-      return () => { };
-    } else if (opts.math === "Katex") {
-      return rehypeKatex;
-    } else if (opts.math === "MathJax") {
-      return rehypeMathjax
-    } else {
-      console.error("[Preview.vim] Does not support " + opts.math)
-      return () => { };
+    let RawHTML = () => {
+      if (opts.enableRawHTML) {
+        return rehypeRaw;
+      } else {
+        return () => { };
+      }
     }
-  }
 
-  let PlantUML = () => {
-    if (opts.plantuml) {
-      return remarkPlantUML;
-    } else {
-      return () => { };
+    let MathCompilar = () => {
+      if (opts.math === "none") {
+        return () => { };
+      } else if (opts.math === "Katex") {
+        return rehypeKatex;
+      } else if (opts.math === "MathJax") {
+        return rehypeMathjax
+      } else {
+        console.error("[Preview.vim] Does not support " + opts.math)
+        return () => { };
+      }
     }
+
+    let PlantUML = () => {
+      if (opts.plantuml) {
+        return this.remarkPlantUML;
+      } else {
+        return () => { };
+      }
+    }
+
+    const result_data = await unified()
+      .use(remarkParse)
+      .use(Emoji())
+      .use(remarkExtendedTable)
+      .use(GFM())
+      .use(Math())
+      .use(remarkRehype, null, { allowDangerousHtml: true, handlers: Object.assign({}, extendedTableHandlers) })
+      .use(RawHTML())
+      .use(() => (tree: import('hast').Root) => {
+        this.cur_pos_arr = []
+        visit(tree, (node: any) => {
+          if (node.properties !== undefined && node.position !== undefined) {
+            (node.properties as any).id = "line_num_" + JSON.stringify(
+              node.position.start.line
+            );
+            this.cur_pos_arr.push(node.position.start.line)
+          };
+        });
+        this.cur_pos_arr = Array.from(new Set(this.cur_pos_arr))
+      })
+      .use(MathCompilar())
+      .use(rehypeDocument, {
+        css: 'https://cdn.jsdelivr.net/npm/katex@0.15.0/dist/katex.min.css'
+      })
+      .use(PlantUML())
+      .use(this.remarkMermaid)
+      .use(rehypeStringify)
+      .process(concated_text)
+
+    let final_data = String(result_data)
+
+
+    if (opts.DEBUG) {
+      end = performance.now();
+      console.log((end - start) + "time");
+    }
+
+    return String(final_data);
+
   }
 
-  const result_data = await unified()
-    .use(remarkParse)
-    .use(Emoji())
-    .use(remarkExtendedTable)
-    .use(GFM())
-    .use(Math())
-    .use(remarkRehype, null, { allowDangerousHtml: true, handlers: Object.assign({}, extendedTableHandlers) })
-    .use(RawHTML())
-    .use(() => (tree: import('hast').Root) => {
+  remarkPlantUML() {
+    const options = { baseUrl: "https://www.plantuml.com/plantuml/png" };
+    return (tree: import('hast').Root) => {
       visit(tree, (node: any) => {
-        if (node.properties !== undefined && node.position !== undefined)
-          (node.properties as any).id = "line_num_" + JSON.stringify(
-            node.position.start.line
-          );
+        if (node.tagName === "code"
+          && JSON.stringify(node.properties.className) === JSON.stringify(['language-plantuml'])) {
+          node.type = "element";
+          node.tagName = "image";
+          node.properties.src = `${options.baseUrl.replace(/\/$/, "")}/${plantumlEncoder.encode(node.children[0].value)}`
+          node.children[0].value = '';
+        }
       });
-    })
-    .use(MathCompilar())
-    .use(rehypeDocument, {
-      css: 'https://cdn.jsdelivr.net/npm/katex@0.15.0/dist/katex.min.css'
-    })
-    .use(PlantUML())
-    .use(remarkMermaid)
-    .use(rehypeStringify)
-    .process(concated_text)
-
-  let final_data = String(result_data)
-
-
-  if (opts.DEBUG) {
-    end = performance.now();
-    console.log((end - start) + "time");
+    };
   }
 
-  return String(final_data);
-
-}
-
-function remarkPlantUML() {
-  const options = { baseUrl: "https://www.plantuml.com/plantuml/png" };
-  return (tree: import('hast').Root) => {
-    visit(tree, (node: any) => {
-      if (node.tagName === "code"
-        && JSON.stringify(node.properties.className) === JSON.stringify(['language-plantuml'])) {
-        node.type = "element";
-        node.tagName = "image";
-        node.properties.src = `${options.baseUrl.replace(/\/$/, "")}/${plantumlEncoder.encode(node.children[0].value)}`
-        node.children[0].value = '';
-      }
-    });
-  };
-}
-
-function remarkMermaid() {
-  return (tree: import('hast').Root) => {
-    visit(tree, (node: any) => {
-      if (node.tagName === "code"
-        && JSON.stringify(node.properties.className) === JSON.stringify(['language-mermaid'])) {
-        node.type = "element";
-        node.tagName = "div";
-        node.properties.className = ['mermaid']
-      }
-    });
-  };
+  remarkMermaid() {
+    return (tree: import('hast').Root) => {
+      visit(tree, (node: any) => {
+        if (node.tagName === "code"
+          && JSON.stringify(node.properties.className) === JSON.stringify(['language-mermaid'])) {
+          node.type = "element";
+          node.tagName = "div";
+          node.properties.className = ['mermaid']
+        }
+      });
+    };
+  }
 }

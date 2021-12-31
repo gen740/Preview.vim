@@ -38,9 +38,17 @@
               break;
             case "cur_pos":
               try {
-                document
-                  .getElementById("line_num_" + data.msg.toString())
-                  .scrollIntoView({ block: "center", behavior: "smooth" });
+                let content_now = document.getElementById(
+                  "line_num_" + data.msg.toString()
+                );
+                let content_height = content_now.offsetHeight;
+                window.scrollTo(
+                  0,
+                  content_now.getBoundingClientRect().top +
+                    window.pageYOffset +
+                    content_height * data.offset -
+                    window.innerHeight / 2
+                );
               } catch (e) {}
               break;
             case "reload":

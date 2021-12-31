@@ -7,16 +7,13 @@
 .wrapper #StartOfContent {
   margin: auto;
   height: 30px;
-  align: center:
 }
 
 .wrapper #content {
   height: auto;
-  align: center:
 }
 
 .wrapper #EndOfContent {
   margin: auto;
-  height: 500px;
-  align: center:
+  height: 70vh;
 }

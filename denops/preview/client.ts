@@ -28,10 +28,6 @@ export class Client {
       this.is_server_ready = false;
     }
     if (!this.is_server_ready) {
-      console.log(path.join(
-        path.dirname(path.fromFileUrl(import.meta.url)),
-        "../../previewer/dist/index.js",
-      ));
       Deno.run({
         cmd: [
           "node",
