@@ -1,2 +1,2 @@
 install:
-	cd previewer && npm i
+	cd previewer && npm i && npm run-script build

@@ -7,7 +7,9 @@ jobs:
     name: tsc
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v1
       - name: install node v17
+        uses: actions/setup-node@v1
         with:
           node-version: 17
       - name: npm install
