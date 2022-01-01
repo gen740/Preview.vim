@@ -9,9 +9,8 @@ endfunction
 function preview#start() abort
   let curbufnr = getbufinfo()[bufname()]['bufnr']
   let cur_buf_content =  getbufline(curbufnr, 1, '$')
+  call preview#set_opts() " 
   call denops#request('preview', 'start', cur_buf_content)
-  let g:preview_server_started = v:true
-  call preview#set_opts()
   if g:preview_enable_bufSync
     if g:preview_fast_bufSync
       augroup PreviewNvim
@@ -32,9 +31,7 @@ function preview#start() abort
 endfunction
 
 function preview#set_opts() abort
-  if g:preview_server_started
-    call denops#request('preview', 'set_opts', [g:preview_options])
-  endif
+  call denops#request('preview', 'set_opts', [g:preview_options])
 endfunction
 
 function preview#theme(theme_name)

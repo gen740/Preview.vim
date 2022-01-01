@@ -38,14 +38,14 @@ let preview_opts: PreviewOptions = {
 
 
 // Load Setting file
-if (fs.existsSync(setting_file)) {
-  preview_opts = JSON.parse(fs.readFileSync(setting_file).toString())
-} else {
-  fs.writeFileSync(setting_file, JSON.stringify(preview_opts))
-}
+// if (fs.existsSync(setting_file)) {
+//   preview_opts = JSON.parse(fs.readFileSync(setting_file).toString())
+// } else {
+// fs.writeFileSync(setting_file, JSON.stringify(preview_opts))
+// }
 
 async function save_options(opts: any) {
-  fs.writeFileSync(setting_file, JSON.stringify(opts))
+  // fs.writeFileSync(setting_file, JSON.stringify(opts))
 }
 
 function apply_style($2: any) {
@@ -93,9 +93,9 @@ async function main() {
   wss.on("connection", function connection(ws) {
     ws.on("message", (data: string) => {
       let res = JSON.parse(data);
-      // if (preview_opts.DEBUG) {
-      //   console.log(res);
-      // }
+      if (preview_opts.DEBUG) {
+        // console.log(res);
+      }
       switch (res.type) {
         case "cur_pos":
           let cursor_position_now = 0
@@ -126,7 +126,7 @@ async function main() {
         case "markdown":
           wss.clients.forEach(async (client) => {
             if (client.readyState === WebSocket.OPEN) {
-              let res_msg = await renderer.markdown_render(res.msg, preview_opts);
+              let res_msg = await renderer.markdown_render(res.msg, JSON.stringify(preview_opts));
               client.send(JSON.stringify({
                 type: "show", mermaid: preview_opts.mermaid, msg: res_msg
               }));
