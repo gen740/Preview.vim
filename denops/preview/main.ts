@@ -22,7 +22,7 @@ export async function main(denops: Denops) {
         await cl.connect_ws();
         cl.buf_data = text;
         if (!cl.is_server_ready) {
-          for (let i = 0, len = 20; i < len; i++) {
+          for (let i = 0, len = 10; i < len; i++) {
             try {
               let get_ready: any = await ky
                 .get("http://localhost:3000/ready")
@@ -64,7 +64,9 @@ export async function main(denops: Denops) {
       if (!cl.is_server_ready) {
         cl.start_server();
       }
-      cl.send_data(cl.buf_data);
+      if (cl.ws.readyState === cl.ws.OPEN) {
+        cl.send_data(cl.buf_data);
+      }
     },
 
     async send_cursor_linenum(data: any) {

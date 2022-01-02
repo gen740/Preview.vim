@@ -1,4 +1,4 @@
-function preview#send_cur_buf() abort
+function preview#send_current_buf() abort
   let curbufnr = bufnr(bufname())
   let cur_buf_content =  getbufline(curbufnr, 1, '$')
   if g:preview_server_started
@@ -9,24 +9,25 @@ endfunction
 function preview#start() abort
   let curbufnr = getbufinfo()[bufname()]['bufnr']
   let cur_buf_content =  getbufline(curbufnr, 1, '$')
-  call preview#set_opts() " 
+  call preview#set_opts()
   call denops#request('preview', 'start', cur_buf_content)
+  let g:preview_server_started = v:true
   if g:preview_enable_bufSync
     if g:preview_fast_bufSync
       augroup PreviewNvim
         au!
-        autocmd TextChangedI,TextChangedP,TextChanged <buffer> call preview#send_cur_buf()
+        autocmd TextChangedI,TextChangedP,TextChanged <buffer> call preview#send_current_buf()
       augroup END
     else
       augroup PreviewNvim
         au!
-        autocmd BufWrite,FileWrite <buffer> call preview#send_cur_buf()
+        autocmd BufWrite,FileWrite <buffer> call preview#send_current_buf()
       augroup END
     endif
   endif
   augroup PreviewFileChange
     au!
-    au BufEnter,WinEnter,BufWinEnter,TabEnter *.md call preview#send_cur_buf()
+    au BufEnter,WinEnter,BufWinEnter,TabEnter *.md call preview#send_current_buf()
   augroup END
 endfunction
 
@@ -35,7 +36,6 @@ function preview#set_opts() abort
 endfunction
 
 function preview#theme(theme_name)
-  call preview#set_opts()
   if a:theme_name ==# 'default' || a:theme_name ==# 'default_dark'
     let g:preview_options['theme'] = a:theme_name
     call preview#set_opts()

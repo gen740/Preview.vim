@@ -2,7 +2,6 @@
 
 Preview Markdown Plugin For Vim/Neovim
 
-
 This Project is WORK IN PROGRESS.
 teth
 There might be some big change on future commit ...

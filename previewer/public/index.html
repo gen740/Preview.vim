@@ -20,11 +20,7 @@
     <script>
       async function connect_ws() {
         let ws = new WebSocket("ws://localhost:8080");
-        ws.onopen = (event) => {
-          ws.send(
-            JSON.stringify({ type: "notification", msg: "browser_is_ready" })
-          );
-        };
+        ws.onopen = (event) => {};
         ws.onmessage = (event) => {
           let data = JSON.parse(event.data);
           console.log(data);

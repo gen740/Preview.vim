@@ -38,14 +38,14 @@ let preview_opts: PreviewOptions = {
 
 
 // Load Setting file
-// if (fs.existsSync(setting_file)) {
-//   preview_opts = JSON.parse(fs.readFileSync(setting_file).toString())
-// } else {
-// fs.writeFileSync(setting_file, JSON.stringify(preview_opts))
-// }
+if (fs.existsSync(setting_file)) {
+  preview_opts = JSON.parse(fs.readFileSync(setting_file).toString())
+} else {
+  fs.writeFileSync(setting_file, JSON.stringify(preview_opts))
+}
 
 async function save_options(opts: any) {
-  // fs.writeFileSync(setting_file, JSON.stringify(opts))
+  fs.writeFileSync(setting_file, JSON.stringify(opts))
 }
 
 function apply_style($2: any) {
@@ -146,15 +146,6 @@ async function main() {
           }
           console.log("Change Options");
           break;
-        case "notification":
-          if (res.msg === "browser_is_ready") {
-            wss.clients.forEach((client) => {
-              if (client.readyState === WebSocket.OPEN) {
-                client.send(JSON.stringify({ type: "notification", msg: "browser_is_ready" }));
-              };
-            })
-          }
-          break;
         case "reset_settings":
           fs.unlinkSync(setting_file);
           break;
@@ -168,6 +159,7 @@ async function main() {
   app.get("/previewer", (_req, res) => {
     apply_style($);
     res.send($.html());
+    console.log("Opened");
     wss.clients.forEach((client) => {
       if (client.readyState === WebSocket.OPEN) {
         client.send(JSON.stringify({ type: "notification", msg: { is_browser_opened: true } }));

@@ -49,8 +49,7 @@ export class Client {
 
   async connect_ws() {
     this.ws = new WebSocket("ws://localhost:8080");
-    this.ws.onopen = (_event) => {
-    };
+    this.ws.onopen = (_event) => {};
     this.ws.onmessage = (event) => {
       let data = JSON.parse(event.data);
       switch (data.type) {

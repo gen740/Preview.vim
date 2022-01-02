@@ -90,7 +90,7 @@ endif
 
 
 command PreviewStart call preview#start()
-command PreviewSync call preview#send_cur_buf()
+command PreviewSync call preview#send_current_buf()
 " command PreviewStop
 " command PreviewOpen
 
