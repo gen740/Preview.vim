@@ -22,7 +22,6 @@ export class Client {
   async start_server() {
     try {
       let get_ready: any = await ky.get("http://localhost:3000/ready").json();
-      // will return { state: "ready" } when server is open
       this.is_server_ready = get_ready.state === "ready";
     } catch (e) { // when server is not ready
       this.is_server_ready = false;
@@ -43,9 +42,6 @@ export class Client {
   send_data(...data: any[]) {
     if (this.ws.readyState === this.ws.OPEN) {
       this.ws.send(JSON.stringify({ type: "markdown", msg: data[0] }));
-      if (!this.notify_once) {
-        this.notify_once = true;
-      }
     } else {
       this.connect_ws();
     }
@@ -53,8 +49,7 @@ export class Client {
 
   async connect_ws() {
     this.ws = new WebSocket("ws://localhost:8080");
-    this.ws.onopen = (_event) => {
-    };
+    this.ws.onopen = (_event) => {};
     this.ws.onmessage = (event) => {
       let data = JSON.parse(event.data);
       switch (data.type) {

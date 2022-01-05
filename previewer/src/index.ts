@@ -93,9 +93,9 @@ async function main() {
   wss.on("connection", function connection(ws) {
     ws.on("message", (data: string) => {
       let res = JSON.parse(data);
-      // if (preview_opts.DEBUG) {
-      //   console.log(res);
-      // }
+      if (preview_opts.DEBUG) {
+        // console.log(res);
+      }
       switch (res.type) {
         case "cur_pos":
           let cursor_position_now = 0
@@ -126,7 +126,7 @@ async function main() {
         case "markdown":
           wss.clients.forEach(async (client) => {
             if (client.readyState === WebSocket.OPEN) {
-              let res_msg = await renderer.markdown_render(res.msg, preview_opts);
+              let res_msg = await renderer.markdown_render(res.msg, JSON.stringify(preview_opts));
               client.send(JSON.stringify({
                 type: "show", mermaid: preview_opts.mermaid, msg: res_msg
               }));
@@ -146,15 +146,6 @@ async function main() {
           }
           console.log("Change Options");
           break;
-        case "notification":
-          if (res.msg === "browser_is_ready") {
-            wss.clients.forEach((client) => {
-              if (client.readyState === WebSocket.OPEN) {
-                client.send(JSON.stringify({ type: "notification", msg: "browser_is_ready" }));
-              };
-            })
-          }
-          break;
         case "reset_settings":
           fs.unlinkSync(setting_file);
           break;
@@ -168,6 +159,7 @@ async function main() {
   app.get("/previewer", (_req, res) => {
     apply_style($);
     res.send($.html());
+    console.log("Opened");
     wss.clients.forEach((client) => {
       if (client.readyState === WebSocket.OPEN) {
         client.send(JSON.stringify({ type: "notification", msg: { is_browser_opened: true } }));

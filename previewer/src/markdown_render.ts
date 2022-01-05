@@ -29,8 +29,9 @@ export class PreviewRenderer {
     this.cur_pos_arr = cur_pos_arr
   }
 
-  async markdown_render(data: string[], opts: PreviewOptions)
+  async markdown_render(data: string[], opts_str: string)
     : Promise<string> {
+    let opts = JSON.parse(opts_str)
     if (opts.DEBUG) {
       start = performance.now();
     }
@@ -82,7 +83,7 @@ export class PreviewRenderer {
       } else if (opts.math === "MathJax") {
         return rehypeMathjax
       } else {
-        console.error("[Preview.vim] Does not support " + opts.math)
+        console.error("[Preview.vim] Does not support " + opts.math + " as a Math Compilar")
         return () => { };
       }
     }
