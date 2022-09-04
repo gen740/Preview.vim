@@ -51,8 +51,8 @@ call dein#add('gen740/Preview.vim', { 'build': 'make install' })
 ## Configurations
 
 Default Configuration is following
-```vim
 
+```vim
 let g:preview_theme = "default" " Specify the theme. "default" or "default dark"
 
 let g:previw_math = "Katex" " specify the math rederer. "none", "Katex" or "MathJax"
@@ -73,5 +73,4 @@ let g:preview_enable_notify = 0  " Use nvim-notify to Notification
 let g:preview_enable_plantuml = 0 " enable plantuml
 
 let g:preview_enable_mermaid = 0 " enable mermaid
-
 ```

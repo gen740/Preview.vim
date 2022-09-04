@@ -12,7 +12,8 @@ if !exists('g:preview_vim_options')
         \ 'cursor_sync_mode'    : 'auto',
         \ 'theme'               : 'default_dark',
         \ 'useTyporaTheme'      : 'none',
-        \ 'custom_css_dir'      : 'none',
+        \ 'custom_css_ft_list'  : [],
+        \ 'custom_css_dict'     : {},
         \ 'math'                : 'Katex',
         \ 'GFM'                 : v:true,
         \ 'plantuml'            : v:false,
@@ -79,17 +80,26 @@ if !exists('g:preview_fast_bufSync')
   let g:preview_fast_bufSync = v:true
 endif
 
+if exists('g:preview_custom_ft')
+  let g:preview_options['custom_css_ft_list'] = g:preview_custom_ft
+endif
+
+if exists('g:preview_custom_css_dict')
+  let g:preview_options['custom_css_dict'] = g:preview_custom_css_dict
+endif
+
 let g:preview_server_started = v:false
 
 if g:preview_enable_cursorSync
   augroup PreviewSendCUrsorPos
     au!
     autocmd CursorMoved,CursorMovedI *.md call preview#send_cursor_linenum()
+    autocmd CursorMoved,CursorMovedI *.txt call preview#send_cursor_linenum()
   augroup END
 endif
 
 
-command PreviewStart call preview#start()
+command PreviewStart call preview#start(&ft)
 command PreviewSync call preview#send_current_buf()
 " command PreviewStop
 " command PreviewOpen

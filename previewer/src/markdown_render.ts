@@ -1,5 +1,3 @@
-import { PreviewOptions } from "./utils.js"
-
 import clone from "clone";
 import { performance } from "perf_hooks";
 
@@ -22,14 +20,14 @@ import { visit } from 'unist-util-visit'
 
 var start: number, end: number;
 
-export class PreviewRenderer {
+export class Md_Renderer {
   cur_pos_arr: number[];
 
   constructor(cur_pos_arr: number[]) {
     this.cur_pos_arr = cur_pos_arr
   }
 
-  async markdown_render(data: string[], opts_str: string)
+  async render(data: string[], opts_str: string)
     : Promise<string> {
     let opts = JSON.parse(opts_str)
     if (opts.DEBUG) {
@@ -39,9 +37,9 @@ export class PreviewRenderer {
     let data_buf = clone(data);
     let concated_text: string = data_buf.join('\n');
 
-    // concated_text = concated_text.replace(/｜/g, `<ruby>`)
-    // concated_text = concated_text.replace(/《/g, `<rt>`)
-    // concated_text = concated_text.replace(/》/g, `</rt></ruby>`)
+    concated_text = concated_text.replace(/｜/g, `<ruby>`)
+    concated_text = concated_text.replace(/《/g, `<rt>`)
+    concated_text = concated_text.replace(/》/g, `</rt></ruby>`)
 
     let Emoji = () => {
       if (opts.emoji) {
@@ -138,7 +136,7 @@ export class PreviewRenderer {
   }
 
   remarkPlantUML() {
-    const options = { baseUrl: "https://www.plantuml.com/plantuml/png" };
+    const options = { baseUrl: `https://www.plantuml.com/plantuml/png` };
     return (tree: import('hast').Root) => {
       visit(tree, (node: any) => {
         if (node.tagName === "code"

@@ -12,19 +12,19 @@
 - [ ] auto server stop
 - [ ] client Identification
 - [ ] "tategaki" mode
-- [ ] marmaid or other feature
+- [x] marmaid or other feature
 - [ ] cursor-position option
 - [ ] Customizable port
 - [ ] support image redering
 
 ## more feature
 
-- [ ] emoji
-  - [ ] this will be ok
+- [x] emoji
+  - [x] this will be ok
 - [ ] image
 - [ ] yaml
-- [ ] pluntml
-- [ ] marmaid
+- [x] pluntml
+- [x] marmaid
 
 ## Options
 
@@ -76,5 +76,4 @@
 - Add Marmaid
 - Change to Remarkjs
 - add Options
-
 

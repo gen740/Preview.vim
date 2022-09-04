@@ -6,11 +6,12 @@ function preview#send_current_buf() abort
   endif
 endfunction
 
-function preview#start() abort
-  let curbufnr = getbufinfo()[bufname()]['bufnr']
+function preview#start(filetype) abort
+  " let curbufnr = getbufinfo()[bufname()]['bufnr']
+  let curbufnr =  bufnr()
   let cur_buf_content =  getbufline(curbufnr, 1, '$')
   call preview#set_opts()
-  call denops#request('preview', 'start', cur_buf_content)
+  call denops#request('preview', 'start', [a:filetype, cur_buf_content])
   let g:preview_server_started = v:true
   if g:preview_enable_bufSync
     if g:preview_fast_bufSync
@@ -46,7 +47,7 @@ endfunction
 
 function preview#auto_browser_open() abort
   if exists('g:preview_open_cmd')
-    call system(g:preview_open_cmd . ' http://localhost:3000/previewer')
+    call system(g:preview_open_cmd . ' http://localhost:3000/markdown')
   endif
 endfunction
 

@@ -1,7 +1,6 @@
-this is the TEST
+# this is the TEST
 
 _Italic_ font _Italic_ is ok?
-etuhetuh
 
 **bold** and **BOLD**
 :smile:
@@ -33,10 +32,16 @@ etuhetuh
 
 1. One
 1. Two
+    1. Three
+    1. Four
+    1. Five
 
 1) One
 2) Two
 3) Three
+    1) Three
+    1) Three
+    1) Three
 
 ---
 
@@ -51,7 +56,6 @@ etuhetuh
 
 int main() {
   std::cout << "Hello World" << std::endl;
-
 }
 ```
 
@@ -108,12 +112,11 @@ graph TD;
 ```
 
 TEST
----
+====
 
-test
-texts
+TEST
+----
 
-This is OK?
+![エビフライトライアングル](http://i.imgur.com/Jjwsc.jpg "サンプル")
 
 
-Test 

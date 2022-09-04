@@ -12,15 +12,21 @@ export async function main(denops: Denops) {
     async set_opts(...data: any[]) {
       cl.opts_buf = JSON.parse(JSON.stringify(data));
       if (cl.ws.readyState === cl.ws.OPEN) {
-        cl.ws.send(JSON.stringify({ type: "options", msg: data[0] }));
+        cl.ws.send(JSON.stringify({ type: "options", msg: cl.opts_buf[0] }));
       }
     },
 
-    async start(...text: any[]) {
+    async test(text: any, text2: any) {
+      console.log(text);
+      console.log(text2);
+    },
+
+    async start(filetype: any, ...text: any[]) {
+      cl.filetype = filetype;
+      cl.buf_data = text[0];
       (async () => {
         await cl.start_server();
         await cl.connect_ws();
-        cl.buf_data = text;
         if (!cl.is_server_ready) {
           for (let i = 0, len = 10; i < len; i++) {
             try {
@@ -34,10 +40,12 @@ export async function main(denops: Denops) {
                 cl.connect_ws();
                 await (new Promise((r) => setTimeout(r, 100)));
               }
-              cl.ws.send(
-                JSON.stringify({ type: "options", msg: cl.opts_buf[0] }),
-              );
-              cl.send_data(cl.buf_data);
+              setTimeout(() => {
+                cl.send_data(cl.buf_data);
+                cl.ws.send(
+                  JSON.stringify({ type: "options", msg: cl.opts_buf[0] }),
+                );
+              }, 300);
               await execute(
                 denops,
                 `call preview#auto_browser_open()`,
@@ -47,14 +55,22 @@ export async function main(denops: Denops) {
             await (new Promise((r) => setTimeout(r, 100)));
           }
         } else {
-          cl.send_data(cl.buf_data);
+          setTimeout(() => {
+            cl.send_data(cl.buf_data);
+            cl.ws.send(
+              JSON.stringify({ type: "options", msg: cl.opts_buf[0] }),
+            );
+          }, 300);
         }
         if (!cl.is_server_ready) {
           console.log("Fail to Start Server");
         }
         if (!cl.notify_once) {
-          cl.notify("Plese Open http://localhost:" + cl.port + "/previewer ");
+          cl.notify(
+            "Plese Open http://localhost:" + cl.port + "/" + filetype + " ",
+          );
           cl.notify_once = true;
+          console.log(cl.opts_buf[0]);
         }
       })();
     },
@@ -79,8 +95,8 @@ export async function main(denops: Denops) {
   execute(
     denops,
     ` if exists ('g:preview_auto_start')
-        if g:preview_auto_start == 1 && &filetype ==# 'markdown'
-          call preview#start()
+        if g:preview_auto_start == 1 && (&filetype ==# 'markdown' || &filetype ==# 'text')
+          call preview#start(&ft)
         endif
       endif `,
   );

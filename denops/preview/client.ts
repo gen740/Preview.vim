@@ -11,6 +11,7 @@ export class Client {
   port = 3000;
   ws = new WebSocket("ws://localhost:8080");
   denops: Denops;
+  filetype: string = "markdown";
 
   constructor(denops: Denops) {
     this.denops = denops;
@@ -41,7 +42,7 @@ export class Client {
 
   send_data(...data: any[]) {
     if (this.ws.readyState === this.ws.OPEN) {
-      this.ws.send(JSON.stringify({ type: "markdown", msg: data[0] }));
+      this.ws.send(JSON.stringify({ type: this.filetype, msg: data[0] }));
     } else {
       this.connect_ws();
     }
@@ -55,6 +56,9 @@ export class Client {
       switch (data.type) {
         case "notification":
           this.send_data(this.buf_data);
+          setTimeout(() => {
+            this.send_data(this.buf_data);
+          }, 200);
           break;
         default:
       }
